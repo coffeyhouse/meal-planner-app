@@ -99,30 +99,60 @@ function HomePage() {
         <PageContainer>
             <PageContainer.Header>
                 <NavBar title="Welcome to Coffey Cuisine" />
-            </PageContainer.Header>
-            <PageContainer.Content>
+            </PageContainer.Header>            
                 <div className="mt-8 flex flex-col gap-4">
-                    <h2 className="text-xl font-bold">This Week's Meal Plan</h2>
-                    <div className="flex gap-4 overflow-x-auto no-scrollbar">
-                        {thisWeekPlan && (
+                    <div className='flex gap-2 justify-between items-center px-4'>
+                        <p className="font-bold text-black/60 grow">Meal plans</p>
+                        <Link to="/meal-plans" className="text-[#FA691A] text-sm font-bold">See all</Link>
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto no-scrollbar px-4">
+                        {thisWeekPlan ? (
                             <>
-                                <Link to={`/plan/${thisWeekPlan.id}/options`} className='rounded-2xl bg-[#70B9BE] p-3 flex flex-col gap-2 shadow-lg shadow-gray-200 text-white min-w-[66%]'>
-                                    <p className='font-bold text-lg mt-[50px]'>This week</p>
-                                    <div className='flex gap-1 items-center'>
-                                        <p className='text-xs text-white/80 font-medium'>{formatDate(thisWeekPlan.startDate)} - {formatDate(thisWeekPlan.endDate)}</p>
-                                    </div>
-                                </Link>
-                                <Link to={`/plan/${thisWeekPlan.id}/options`} className='rounded-2xl bg-[#70B9BE] p-3 flex flex-col gap-2 shadow-lg shadow-gray-200 text-white min-w-[66%]'>
-                                    <p className='font-bold text-lg mt-[50px]'>Next week</p>
+                                <Link to={`/plan/${thisWeekPlan.id}/options`} className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
+                                    <p className='font-bold text-xl mt-[50px]'>This week</p>
                                     <div className='flex gap-1 items-center'>
                                         <p className='text-xs text-white/80 font-medium'>{formatDate(thisWeekPlan.startDate)} - {formatDate(thisWeekPlan.endDate)}</p>
                                     </div>
                                 </Link>
                             </>
-                        )}
+                        ) :
+                            (
+                                <>
+                                    <Link className='rounded-2xl bg-[#70B9BE] p-3 flex flex-col gap-2 shadow-lg shadow-gray-200 text-white min-w-[66%]'>
+                                        <p className='font-bold text-xl mt-[50px]'>This week</p>
+                                        <div className='flex gap-1 items-center'>
+                                            <p className='text-xs text-white/80 font-medium'>Add a plan</p>
+                                        </div>
+                                    </Link>
+                                </>
+                            )
+
+                        }
+                        {nextWeekPlan ? (
+                            <>
+                                <Link to={`/plan/${nextWeekPlan.id}/options`}  className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
+                                    <p className='font-bold text-xl mt-[50px]'>Next week</p>
+                                    <div className='flex gap-1 items-center'>
+                                        <p className='text-xs text-white/80 font-medium'>{formatDate(nextWeekPlan.startDate)} - {formatDate(nextWeekPlan.endDate)}</p>
+                                    </div>
+                                </Link>
+                            </>
+                        ) :
+                            (
+                                <>
+                                    <Link  className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
+                                        <p className='font-bold text-xl mt-[50px]'>Next week</p>
+                                        <div className='flex gap-1 items-center'>
+                                            <p className='text-xs text-white/80 font-medium'>Add a plan</p>
+                                        </div>
+                                    </Link>
+                                </>
+                            )
+
+                        }
                     </div>
                 </div>
-
+                <PageContainer.Content>
                 <div className="mt-8 flex flex-col gap-4">
                     <div className='flex gap-2 justify-between items-center'>
                         <p className="font-bold text-black/60 grow">Our favourite meals</p>
@@ -131,48 +161,6 @@ function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                         {renderMeals()}
                     </div>
-                </div>
-                <div className="mt-8 flex flex-col gap-4">
-                    <h2 className="text-xl font-bold">This Week's Meal Plan</h2>
-                    <CardContainer>
-                        {thisWeekPlan ? (
-                            <Card
-                                key={thisWeekPlan.id}
-                                title={`${formatDate(thisWeekPlan.startDate)} - ${formatDate(thisWeekPlan.endDate)}`}
-                                description={generateDescription(thisWeekPlan)}
-                                buttonType="view"
-                                buttonClick={() => handlePlanClick(thisWeekPlan.id)}
-                            />
-                        ) : (
-                            <Card
-                                title="No plan yet"
-                                description="Click to add a plan for this week."
-                                buttonType="add"
-                                buttonLink="/plan/add"
-                            />
-                        )}
-                    </CardContainer>
-                </div>
-                <div className="mt-8 flex flex-col gap-4">
-                    <h2 className="text-xl font-bold">Next Week's Meal Plan</h2>
-                    <CardContainer>
-                        {nextWeekPlan ? (
-                            <Card
-                                key={nextWeekPlan.id}
-                                title={`${formatDate(nextWeekPlan.startDate)} - ${formatDate(nextWeekPlan.endDate)}`}
-                                description={generateDescription(nextWeekPlan)}
-                                buttonType="view"
-                                buttonClick={() => handlePlanClick(nextWeekPlan.id)}
-                            />
-                        ) : (
-                            <Card
-                                title="No plan yet"
-                                description="Click to add a plan for next week."
-                                buttonType="add"
-                                buttonLink="/plan/add"
-                            />
-                        )}
-                    </CardContainer>
                 </div>
             </PageContainer.Content>
         </PageContainer>
