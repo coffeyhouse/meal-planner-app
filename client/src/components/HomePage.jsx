@@ -71,11 +71,11 @@ function HomePage() {
             </PageContainer.Header>
             <PageContainer.Content>
                 <div className="mt-8 flex flex-col gap-4">
-                    <div className='flex gap-2 justify-between items-center px-4'>
+                    <div className='flex gap-2 justify-between items-center'>
                         <Heading variant="h3">Meal plans</Heading>
                         <Link to="/meal-plans" className="text-[#FA691A] text-sm font-bold">See all</Link>
                     </div>
-                    <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 pb-10">
+                    <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 pb-8" style={{margin: "0 -16px"}}>
                         {thisWeekPlan ? (
                             <>
                                 <Link to={`/plan/${thisWeekPlan.id}/add-meals`} className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]  shadow-lg shadow-gray-200'>
@@ -122,7 +122,7 @@ function HomePage() {
                         }
                     </div>
                 </div>
-                <div className="mt-8 flex flex-col gap-4">
+                <div className="flex flex-col gap-4">
                     <div className='flex gap-2 justify-between items-center'>
                         <Heading variant="h3">Our favourite meals</Heading>
                         <Link to="/meals" className="text-[#FA691A] text-sm font-bold">See all</Link>
