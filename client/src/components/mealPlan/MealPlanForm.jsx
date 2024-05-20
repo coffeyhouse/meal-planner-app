@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import NavBar from '../common/NavBar';
 import PageContainer from '../layout/PageContainer';
 import Button from '../common/Button';
+import Heading from '../common/Heading';
 
 function MealPlanForm() {
     const [startDate, setStartDate] = useState('');
@@ -45,7 +46,7 @@ function MealPlanForm() {
             </PageContainer.Header>
             <PageContainer.Content>
                 <form onSubmit={handleSubmit} className='flex flex-col gap-2 w-full'>
-                    <p className='font-bold text-black/60 grow mt-4'>Start date</p>
+                    <Heading variant="h3">Start date</Heading>
                     <input
                         className="bg-white p-2 border w-full"
                         type="date"
@@ -53,7 +54,7 @@ function MealPlanForm() {
                         onChange={e => setStartDate(e.target.value)}
                         required
                     />
-                    <p className='font-bold text-black/60 grow mt-4'>End date</p>
+                    <Heading variant="h3">End date</Heading>
                     <input
                         className="bg-white p-2 border"
                         type="date"

@@ -6,7 +6,6 @@ import Root from './routes/Root';
 import ErrorPage from './routes/ErrorPage';
 import RecipeBuilder from './components/meal/RecipeBuilder';
 import Meals from './components/meal/Meals';
-import MealDetails from './components/meal/MealDetails';
 import MealPlanList from './components/mealPlan/MealPlanList';
 import MealPlanForm from './components/mealPlan/MealPlanForm';
 import AddMealPlanDay from './components/mealPlan/AddMealPlanDay';
@@ -50,10 +49,6 @@ const router = createBrowserRouter([
       {
         path: "meals",
         element: <Meals />,
-      },
-      {
-        path: "meals/:mealId",
-        element: <MealDetails />,
       }
     ]
   },

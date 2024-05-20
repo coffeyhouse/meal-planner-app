@@ -6,7 +6,10 @@ import Card from '../common/Card';
 import CardContainer from '../common/CardContainer';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
+import ShoppingList from '../common/ShoppingList';
+import Heading from '../common/Heading';
 import dayjs from 'dayjs';
+import { getDateRange, parseDate, formatDayAndWeekday } from '../../utils';
 
 function AddMealPlanDay() {
     const { mealPlanId } = useParams();
@@ -20,8 +23,11 @@ function AddMealPlanDay() {
     const [error, setError] = useState('');
     const [dates, setDates] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [shoppingList, setShoppingList] = useState(null);
+    const [isShoppingListModalOpen, setIsShoppingListModalOpen] = useState(false);
 
     const toggleModal = () => setIsModalOpen(!isModalOpen);
+    const toggleShoppingListModal = () => setIsShoppingListModalOpen(!isShoppingListModalOpen);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -78,42 +84,6 @@ function AddMealPlanDay() {
 
     const mealsForSelectedDate = getMealsForDate(selectedDate);
 
-    function parseDate(input) {
-        if (!input) return null;
-
-        const parts = input.match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}\.\d{3}) ([+-]\d{2}:\d{2})/);
-        if (!parts) {
-            console.error("Invalid date format:", input);
-            return null;
-        }
-
-        const dateString = `${parts[1]}T${parts[2]}${parts[3]}`;
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) {
-            console.error("Invalid date parsed:", dateString);
-            return null;
-        }
-        return date;
-    }
-
-    const getDateRange = (start, end) => {
-        let startDate = parseDate(start);
-        const endDate = parseDate(end);
-
-        if (!startDate || !endDate) {
-            console.error('Invalid start or end date', { start, end });
-            return [];
-        }
-
-        const dates = [];
-        while (startDate <= endDate) {
-            dates.push(startDate.toISOString().split('T')[0]);
-            startDate = new Date(startDate.setDate(startDate.getDate() + 1));
-        }
-
-        return dates;
-    };
-
     const handleSubmit = async (event) => {
         event.preventDefault();
         setIsLoading(true);
@@ -143,20 +113,20 @@ function AddMealPlanDay() {
         }
     };
 
-    const weekdayInitials = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-
-    const formatDayAndWeekday = (dateString) => {
-        const date = new Date(dateString);
-        const day = date.getDate();
-        const weekdayIndex = date.getDay();
-        const weekdayInitial = weekdayInitials[weekdayIndex];
-        return { day, weekdayInitial };
+    const generateShoppingList = async () => {
+        try {
+            const response = await fetch(`/api/shopping-list/create/${mealPlanId}`);
+            if (!response.ok) {
+                throw new Error('Failed to generate shopping list');
+            }
+            const shoppingListData = await response.json();
+            setShoppingList(shoppingListData);
+            toggleShoppingListModal();
+            alert('Shopping list created successfully!');
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        }
     };
-
-    function openModal(meal) {
-        setMealType(meal);
-        toggleModal();
-    }
 
     if (!mealPlan || !dates) return <p>Loading meal plan details...</p>;
 
@@ -191,15 +161,15 @@ function AddMealPlanDay() {
                     </div>
                 </PageContainer.Header>
                 <PageContainer.Content>
-                    <p className="font-bold text-black/90">{dayjs(selectedDate).format('dddd D MMMM YYYY')}</p>
-                    <div className="flex flex-col">
+                    <Heading variant="h4">{dayjs(selectedDate).format('dddd D MMMM YYYY')}</Heading>
+                    <div className="flex flex-col gap-4 mt-4">
                         {['breakfast', 'lunch', 'dinner'].map((type) => (
                             <CardContainer key={type}>
-                                <p className="font-bold text-black/60 mt-4">{type.charAt(0).toUpperCase() + type.slice(1)}</p>
+                                <Heading variant="h3" className="mt-4">{type.charAt(0).toUpperCase() + type.slice(1)}</Heading>
                                 {mealsForSelectedDate[type] ? (
                                     <Card
                                         title={mealsForSelectedDate[type].name}
-                                        description="w/ garlic bread"
+                                        description="Future state to add sides"
                                         image={`https://picsum.photos/300?random=${Math.random()}`}
                                         buttonType="edit"
                                     />
@@ -208,6 +178,9 @@ function AddMealPlanDay() {
                                 )}
                             </CardContainer>
                         ))}
+                    </div>
+                    <div className="flex justify-end mt-4">
+                        <Button onClick={generateShoppingList}>Create Shopping List</Button>
                     </div>
                 </PageContainer.Content>
             </PageContainer>
@@ -230,6 +203,12 @@ function AddMealPlanDay() {
                             {isLoading ? 'Adding...' : 'Add Meal'}
                         </Button>
                     </form>
+                </Modal>
+            )}
+
+            {isShoppingListModalOpen && (
+                <Modal title="Shopping List" onClose={toggleShoppingListModal}>
+                    <ShoppingList items={shoppingList} onClose={toggleShoppingListModal} />
                 </Modal>
             )}
         </>

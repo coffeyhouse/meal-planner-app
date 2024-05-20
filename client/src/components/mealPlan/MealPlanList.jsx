@@ -5,6 +5,7 @@ import NavBar from '../common/NavBar';
 import Card from '../common/Card';
 import PageContainer from '../layout/PageContainer';
 import CardContainer from '../common/CardContainer';
+import Heading from '../common/Heading';
 
 function MealPlanList() {
     const [mealPlans, setMealPlans] = useState([]);
@@ -96,62 +97,64 @@ function MealPlanList() {
                 <NavBar title="Meal Plans" />
             </PageContainer.Header>
             <PageContainer.Content>
-                <CardContainer>
-                    <p className="font-bold text-black/60 grow mt-4">This Week</p>
-                    {thisWeekPlan ? (
-                        <Card
-                            key={thisWeekPlan.id}
-                            title={`${formatDate(thisWeekPlan.startDate)} - ${formatDate(thisWeekPlan.endDate)}`}
-                            description={generateDescription(thisWeekPlan)}
-                            buttonType="view"
-                            buttonClick={() => handlePlanClick(thisWeekPlan.id)}
-                        />
-                    ) : (
-                        <Card
-                            title="No plan yet"
-                            description="Click to add a plan for this week."
-                            buttonType="add"
-                            buttonLink="/plan/add"
-                        />
-                    )}
-                </CardContainer>
-                <CardContainer>
-                    <p className="font-bold text-black/60 grow mt-4">Next Week</p>
-                    {nextWeekPlan ? (
-                        <Card
-                            key={nextWeekPlan.id}
-                            title={`${formatDate(nextWeekPlan.startDate)} - ${formatDate(nextWeekPlan.endDate)}`}
-                            description={generateDescription(nextWeekPlan)}
-                            buttonType="view"
-                            buttonClick={() => handlePlanClick(nextWeekPlan.id)}
-                        />
-                    ) : (
-                        <Card
-                            title="No plan yet"
-                            description="Click to add a plan for next week."
-                            buttonType="add"
-                            buttonLink="plan/add"
-                        />
-                    )}
-                </CardContainer>
-                <CardContainer>
-                    <p className="font-bold text-black/60 grow mt-4">Previous weeks</p>
+                <div className='flex flex-col gap-4'>
                     <CardContainer>
-                        {previousWeeksPlans.length > 0 ? (
-                            previousWeeksPlans.map(plan => (
-                                <Card
-                                    key={plan.id}
-                                    title={`${formatDate(plan.startDate)} - ${formatDate(plan.endDate)}`}
-                                    description={generateDescription(plan)}
-                                    buttonType="view"
-                                    buttonClick={() => handlePlanClick(plan.id)}
-                                />
-                            ))
+                        <Heading variant="h3">This Week</Heading>
+                        {thisWeekPlan ? (
+                            <Card
+                                key={thisWeekPlan.id}
+                                title={`${formatDate(thisWeekPlan.startDate)} - ${formatDate(thisWeekPlan.endDate)}`}
+                                description={generateDescription(thisWeekPlan)}
+                                buttonType="view"
+                                buttonClick={() => handlePlanClick(thisWeekPlan.id)}
+                            />
                         ) : (
-                            <Card title="No previous meal plans available." />
+                            <Card
+                                title="No plan yet"
+                                description="Click to add a plan for this week."
+                                buttonType="add"
+                                buttonLink="/plan/add"
+                            />
                         )}
                     </CardContainer>
-                </CardContainer>
+                    <CardContainer>
+                        <Heading variant="h3">Next Week</Heading>
+                        {nextWeekPlan ? (
+                            <Card
+                                key={nextWeekPlan.id}
+                                title={`${formatDate(nextWeekPlan.startDate)} - ${formatDate(nextWeekPlan.endDate)}`}
+                                description={generateDescription(nextWeekPlan)}
+                                buttonType="view"
+                                buttonClick={() => handlePlanClick(nextWeekPlan.id)}
+                            />
+                        ) : (
+                            <Card
+                                title="No plan yet"
+                                description="Click to add a plan for next week."
+                                buttonType="add"
+                                buttonLink="plan/add"
+                            />
+                        )}
+                    </CardContainer>
+                    <CardContainer>
+                        <Heading variant="h3">Previous weeks</Heading>
+                        <CardContainer>
+                            {previousWeeksPlans.length > 0 ? (
+                                previousWeeksPlans.map(plan => (
+                                    <Card
+                                        key={plan.id}
+                                        title={`${formatDate(plan.startDate)} - ${formatDate(plan.endDate)}`}
+                                        description={generateDescription(plan)}
+                                        buttonType="view"
+                                        buttonClick={() => handlePlanClick(plan.id)}
+                                    />
+                                ))
+                            ) : (
+                                <Card title="No previous meal plans available." />
+                            )}
+                        </CardContainer>
+                    </CardContainer>
+                </div>
             </PageContainer.Content>
         </PageContainer>
     );

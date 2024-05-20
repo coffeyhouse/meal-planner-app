@@ -7,6 +7,7 @@ import PageContainer from '../layout/PageContainer';
 import Card from '../common/Card';
 import CardContainer from '../common/CardContainer';
 import Modal from '../common/Modal';
+import Heading from '../common/Heading';
 
 const baseUnits = [
     { label: 'grams', value: 'g' },
@@ -159,52 +160,57 @@ function RecipeBuilder() {
                 <NavBar title="Meal builder" />
             </PageContainer.Header>
             <PageContainer.Content>
-                <div className="flex flex-col gap-2">
-                    <p className="font-bold text-black/60 mt-4">Recipe name</p>
-                    <input
-                        type="text"
-                        placeholder="Give it a name..."
-                        className="bg-white p-2 border"
-                        value={recipeName}
-                        onChange={(e) => setRecipeName(e.target.value)}
-                        disabled={!isEditing}
-                    />
-                </div>
-                <div className="flex items-center mb-2">
-                    <div className="grow">
-                        <p className="font-bold text-black/60 mt-4">Ingredients</p>
-                        <p className="text-sm font-light">What's needed for this meal</p>
+                <div className='flex flex-col gap-4'>
+                    <div className="flex flex-col gap-2">
+                        <Heading variant="h3">Recipe name</Heading>
+                        <input
+                            type="text"
+                            placeholder="Give it a name..."
+                            className="bg-white p-2 border"
+                            value={recipeName}
+                            onChange={(e) => setRecipeName(e.target.value)}
+                            disabled={!isEditing}
+                        />
                     </div>
-                    {isEditing && (
-                        <Button onClick={() => setAddIngredients(true)}>Add</Button>
-                    )}
-                </div>
-                <div className="flex flex-col gap-2">
-                    {ingredients.length > 0 && (
-                        <CardContainer>
-                            {ingredients.map(ingredient => (
-                                <Card
-                                    key={ingredient.id}
-                                    title={ingredient.name}
-                                    description={`${ingredient.quantity} ${ingredient.unit}`}
-                                    buttonType="remove"
-                                    buttonClick={isEditing ? () => removeIngredient(ingredient.id) : null}
-                                />
-                            ))}
-                        </CardContainer>
-                    )}
-                    {isEditing && !mealId && (
-                        <Button onClick={handleAddMeal} disabled={ingredients.length === 0 || !recipeName}>Save</Button>
-                    )}
-                    {!isEditing && mealId && (
-                        <Button onClick={() => setIsEditing(true)}>Edit</Button>
-                    )}
-                    {isEditing && mealId && (
-                        <>
-                            <Button onClick={handleAddMeal} disabled={ingredients.length === 0 || !recipeName}>Save</Button>
-                            <Button.Secondary onClick={() => setIsEditing(false)}>Cancel edit</Button.Secondary>
-                        </>
-                    )}
+                    <div>
+
+                        <div className="flex items-center mb-2">
+                            <div className="grow">
+                                <Heading variant="h3">Ingredients</Heading>
+                                <p className="text-sm font-light">{ingredients.length} item{ingredients.length > 1 ? "s" : ""}</p>
+                            </div>
+                            {isEditing && (
+                                <Button onClick={() => setAddIngredients(true)}>Add</Button>
+                            )}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            {ingredients.length > 0 && (
+                                <CardContainer>
+                                    {ingredients.map(ingredient => (
+                                        <Card
+                                            key={ingredient.id}
+                                            title={ingredient.name}
+                                            description={`${ingredient.quantity} ${ingredient.unit}`}
+                                            buttonType="remove"
+                                            buttonClick={isEditing ? () => removeIngredient(ingredient.id) : null}
+                                        />
+                                    ))}
+                                </CardContainer>
+                            )}
+                            {isEditing && !mealId && (
+                                <Button onClick={handleAddMeal} disabled={ingredients.length === 0 || !recipeName}>Save</Button>
+                            )}
+                            {!isEditing && mealId && (
+                                <Button onClick={() => setIsEditing(true)}>Edit</Button>
+                            )}
+                            {isEditing && mealId && (
+                                <>
+                                    <Button onClick={handleAddMeal} disabled={ingredients.length === 0 || !recipeName}>Save</Button>
+                                    <Button.Secondary onClick={() => setIsEditing(false)}>Cancel edit</Button.Secondary>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
                 {addIngredients && <IngredientSearch onIngredientSelect={handleIngredientSelect} onClose={() => setAddIngredients(false)} />}
                 {isModalOpen && (

@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import NavBar from './common/NavBar';
 import PageContainer from './layout/PageContainer';
-import Button from './common/Button';
 import MealCard from './MealCard';
-import Card from './common/Card';
-import CardContainer from './common/CardContainer';
+import Heading from './common/Heading';
 
 function HomePage() {
     const [meals, setMeals] = useState([]);
     const [thisWeekPlan, setThisWeekPlan] = useState(null);
     const [nextWeekPlan, setNextWeekPlan] = useState(null);
-    const navigate = useNavigate();
 
     useEffect(() => {
         fetch('/api/meals')
@@ -61,34 +58,6 @@ function HomePage() {
         return getWeekNumber(now) + 1 === getWeekNumber(new Date(date.split(' ')[0]));
     }
 
-    function getMealCounts(plan) {
-        const mealCounts = { breakfast: 0, lunch: 0, dinner: 0 };
-        plan.MealPlanDays.forEach(day => {
-            if (day.mealType in mealCounts) {
-                mealCounts[day.mealType]++;
-            }
-        });
-        return mealCounts;
-    }
-
-    function generateDescription(plan) {
-        const { breakfast, lunch, dinner } = getMealCounts(plan);
-        if (breakfast === 0 && lunch === 0 && dinner === 0) {
-            return 'No meals added yet';
-        }
-        const pluralize = (count, noun) => {
-            if (noun === 'lunch') {
-                return `${count} ${count !== 1 ? 'lunches' : 'lunch'}`;
-            }
-            return `${count} ${noun}${count !== 1 ? 's' : ''}`;
-        };
-        return `${pluralize(breakfast, 'breakfast')}, ${pluralize(lunch, 'lunch')}, and ${pluralize(dinner, 'dinner')}.`;
-    }
-
-    const handlePlanClick = (planId) => {
-        navigate(`/plan/${planId}/options`);
-    };
-
     const renderMeals = () => {
         return meals.slice(0, 4).map((meal) => (
             <MealCard key={meal.id} meal={meal} variant="small" />
@@ -99,16 +68,17 @@ function HomePage() {
         <PageContainer>
             <PageContainer.Header>
                 <NavBar title="Welcome to Coffey Cuisine" />
-            </PageContainer.Header>            
+            </PageContainer.Header>
+            <PageContainer.Content>
                 <div className="mt-8 flex flex-col gap-4">
                     <div className='flex gap-2 justify-between items-center px-4'>
-                        <p className="font-bold text-black/60 grow">Meal plans</p>
+                        <Heading variant="h3">Meal plans</Heading>
                         <Link to="/meal-plans" className="text-[#FA691A] text-sm font-bold">See all</Link>
                     </div>
-                    <div className="flex gap-4 overflow-x-auto no-scrollbar px-4">
+                    <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 pb-10">
                         {thisWeekPlan ? (
                             <>
-                                <Link to={`/plan/${thisWeekPlan.id}/options`} className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
+                                <Link to={`/plan/${thisWeekPlan.id}/add-meals`} className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]  shadow-lg shadow-gray-200'>
                                     <p className='font-bold text-xl mt-[50px]'>This week</p>
                                     <div className='flex gap-1 items-center'>
                                         <p className='text-xs text-white/80 font-medium'>{formatDate(thisWeekPlan.startDate)} - {formatDate(thisWeekPlan.endDate)}</p>
@@ -130,8 +100,8 @@ function HomePage() {
                         }
                         {nextWeekPlan ? (
                             <>
-                                <Link to={`/plan/${nextWeekPlan.id}/options`}  className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
-                                    <p className='font-bold text-xl mt-[50px]'>Next week</p>
+                                <Link to={`/plan/${nextWeekPlan.id}/options`} className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
+                                    <Heading variant="h3">Next week</Heading>
                                     <div className='flex gap-1 items-center'>
                                         <p className='text-xs text-white/80 font-medium'>{formatDate(nextWeekPlan.startDate)} - {formatDate(nextWeekPlan.endDate)}</p>
                                     </div>
@@ -140,7 +110,7 @@ function HomePage() {
                         ) :
                             (
                                 <>
-                                    <Link  className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
+                                    <Link className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
                                         <p className='font-bold text-xl mt-[50px]'>Next week</p>
                                         <div className='flex gap-1 items-center'>
                                             <p className='text-xs text-white/80 font-medium'>Add a plan</p>
@@ -152,10 +122,9 @@ function HomePage() {
                         }
                     </div>
                 </div>
-                <PageContainer.Content>
                 <div className="mt-8 flex flex-col gap-4">
                     <div className='flex gap-2 justify-between items-center'>
-                        <p className="font-bold text-black/60 grow">Our favourite meals</p>
+                        <Heading variant="h3">Our favourite meals</Heading>
                         <Link to="/meals" className="text-[#FA691A] text-sm font-bold">See all</Link>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
