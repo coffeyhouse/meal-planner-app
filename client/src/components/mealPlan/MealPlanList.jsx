@@ -111,7 +111,7 @@ function MealPlanList() {
                             title="No plan yet"
                             description="Click to add a plan for this week."
                             buttonType="add"
-                            buttonLink="plan/add"
+                            buttonLink="/plan/add"
                         />
                     )}
                 </CardContainer>
