@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Fuse from 'fuse.js';
 import Modal from './common/Modal';
 import Button from './common/Button';
+import { searchItems } from '../utils/search';
 
 function IngredientSearch({ onIngredientSelect, onClose }) {
     const [ingredients, setIngredients] = useState([]);
@@ -25,13 +25,7 @@ function IngredientSearch({ onIngredientSelect, onClose }) {
             .catch(error => console.error('Error fetching ingredients:', error));
     }, []);
 
-    const fuse = new Fuse(ingredients, {
-        keys: ['name'],
-        includeScore: true,
-        threshold: 0.3
-    });
-
-    const results = searchTerm ? fuse.search(searchTerm).map(result => result.item) : ingredients;
+    const results = searchItems(ingredients, ['name'], searchTerm);
 
     const handleSearchChange = event => {
         setSearchTerm(event.target.value);

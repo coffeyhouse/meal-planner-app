@@ -128,6 +128,11 @@ function AddMealPlanDay() {
         }
     };
 
+    function openModal(meal) {
+        setMealType(meal);
+        toggleModal();
+    }
+
     if (!mealPlan || !dates) return <p>Loading meal plan details...</p>;
 
     return (

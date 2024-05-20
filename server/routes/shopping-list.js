@@ -25,13 +25,6 @@ router.get('/create/:mealPlanId', async (req, res) => {
             }
         });
 
-        // Simplified logging to avoid circular references
-        console.log("mealPlanDays IDs:", mealPlanDays.map(day => ({
-            id: day.id,
-            mealId: day.mealId,
-            ingredients: day.Meal.Ingredients.map(ing => ing.id)
-        })));
-
         const ingredientsNeeded = mealPlanDays.reduce((acc, day) => {
             day.Meal.Ingredients.forEach(ing => {
                 if (!acc[ing.id]) {
@@ -39,16 +32,14 @@ router.get('/create/:mealPlanId', async (req, res) => {
                         id: ing.id,
                         name: ing.name,
                         category: ing.category,
-                        quantityNeeded: 0 
+                        quantityNeeded: 0,
+                        unit: ing.MealIngredient.unit // Ensure unit is included here
                     };
                 }
                 acc[ing.id].quantityNeeded += parseFloat(ing.MealIngredient.quantity);
             });
             return acc;
         }, {});
-
-        // Log the constructed ingredientsNeeded object without circular references
-        console.log("ingredientsNeeded IDs:", Object.keys(ingredientsNeeded));
 
         const transaction = await sequelize.transaction();
         await ShoppingList.destroy({
@@ -61,11 +52,6 @@ router.get('/create/:mealPlanId', async (req, res) => {
                 if (ingredientsNeeded.hasOwnProperty(ingId)) {
                     const ing = ingredientsNeeded[ingId];
 
-                    // Additional logging to ensure ing.id is correctly accessed
-                    console.log("Ingredient object:", ing);
-                    console.log("Checking ingredient with ID:", ing.id);
-
-                    // Validate if ingredientId exists in the Ingredients table
                     const ingredientExists = await Ingredient.findByPk(ing.id);
                     if (!ingredientExists) {
                         throw new Error(`Ingredient with ID ${ing.id} does not exist`);
@@ -74,6 +60,7 @@ router.get('/create/:mealPlanId', async (req, res) => {
                     await ShoppingList.upsert({
                         ingredientId: ing.id,
                         quantityNeeded: ing.quantityNeeded,
+                        unit: ing.unit // Ensure unit is included here
                     }, {
                         transaction
                     });

@@ -2,6 +2,7 @@ import React from "react";
 import Heading from "./Heading";
 
 function ShoppingList({ items, onClose }) {
+    console.log(items);
     const categorizedItems = items.reduce((acc, item) => {
         const category = item.Ingredient.category || "Uncategorized";
         if (!acc[category]) {
@@ -19,7 +20,7 @@ function ShoppingList({ items, onClose }) {
                     <ul className="list-disc pl-5">
                         {categorizedItems[category].map(item => (
                             <li key={item.ingredientId} className="mb-2">
-                                {item.Ingredient.name} - {item.quantityNeeded} {item.unit || item.Ingredient.defaultUnit}
+                                {item.Ingredient.name} - {item.quantityNeeded} {item.unit || item.Ingredient.defaultUnit || ''}
                             </li>
                         ))}
                     </ul>
