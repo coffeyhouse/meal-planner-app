@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import IngredientSearch from '../IngredientSearch';
-import { Link, useParams, useNavigate } from "react-router-dom";
-import Button from '../components/Button';
-import NavBar from '../components/NavBar';
-import PageContainer from '../components/PageContainer';
-import Card from '../components/Card';
-import CardContainer from '../components/CardContainer';
+import { useParams, useNavigate } from 'react-router-dom';
+import Button from '../common/Button';
+import NavBar from '../common/NavBar';
+import PageContainer from '../layout/PageContainer';
+import Card from '../common/Card';
+import CardContainer from '../common/CardContainer';
+import Modal from '../common/Modal';
 
 const baseUnits = [
     { label: 'grams', value: 'g' },
@@ -18,19 +19,20 @@ const baseUnits = [
     { label: 'pieces', value: 'pcs' }
 ];
 
-
 function RecipeBuilder() {
     const { mealId } = useParams();
     const navigate = useNavigate();
     const [recipeName, setRecipeName] = useState('');
     const [ingredients, setIngredients] = useState([]);
-    const [modalVisible, setModalVisible] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentIngredient, setCurrentIngredient] = useState(null);
     const [quantity, setQuantity] = useState('');
     const [unit, setUnit] = useState('');
     const [addIngredients, setAddIngredients] = useState(false);
     const [commonUnits, setCommonUnits] = useState([...baseUnits]);
     const [isEditing, setIsEditing] = useState(true);
+
+    const toggleModal = () => setIsModalOpen(!isModalOpen);
 
     useEffect(() => {
         if (mealId) {
@@ -42,7 +44,7 @@ function RecipeBuilder() {
                         ...ing,
                         id: ing.id,
                         name: ing.name,
-                        quantity: ing.quantity.toString(), // Make sure to convert quantity to string if your input expects a string
+                        quantity: ing.quantity.toString(),
                         unit: ing.unit
                     })));
                     setIsEditing(false);
@@ -56,14 +58,13 @@ function RecipeBuilder() {
             const savedMealData = localStorage.getItem('currentMeal');
             if (savedMealData) {
                 const { recipeName, ingredients } = JSON.parse(savedMealData);
-                console.log(recipeName, ingredients)
                 if (recipeName || ingredients.length > 0) {
                     if (window.confirm("Do you want to continue with your previous meal?")) {
                         setRecipeName(recipeName);
                         setIngredients(ingredients);
                         localStorage.removeItem('currentMeal');
                     } else {
-                        localStorage.removeItem('currentMeal'); // Clear the saved data if user does not want to use it
+                        localStorage.removeItem('currentMeal');
                     }
                 }
             }
@@ -72,33 +73,25 @@ function RecipeBuilder() {
 
     useEffect(() => {
         if (!mealId) {
-            // Save the current state to localStorage
             const mealData = {
                 recipeName,
                 ingredients
             };
             localStorage.setItem('currentMeal', JSON.stringify(mealData));
-            console.log(mealData)
         }
     }, [recipeName, ingredients]);
 
-
     const handleIngredientSelect = (ingredient) => {
         setCurrentIngredient(ingredient);
-        setModalVisible(true);
+        setIsModalOpen(true);
 
-        // Reset the units to the base each time an ingredient is selected
         let updatedUnits = [...baseUnits];
 
-        // Add the default unit at the top if it's valid and not already included
         if (ingredient.defaultUnit && ingredient.defaultUnit.trim() !== '' && !baseUnits.some(u => u.value === ingredient.defaultUnit)) {
             updatedUnits = [{ label: ingredient.defaultUnit, value: ingredient.defaultUnit }, ...updatedUnits];
         }
 
-        // Update the units state
         setCommonUnits(updatedUnits);
-
-        // Set the unit to the default unit of the ingredient or reset if invalid
         setUnit(ingredient.defaultUnit && ingredient.defaultUnit.trim() !== '' ? ingredient.defaultUnit : '');
     };
 
@@ -111,7 +104,7 @@ function RecipeBuilder() {
             };
             setIngredients(prevIngredients => [...prevIngredients, extendedIngredient]);
         }
-        setModalVisible(false);
+        setIsModalOpen(false);
         resetIngredientForm();
         setAddIngredients(false);
     };
@@ -126,7 +119,7 @@ function RecipeBuilder() {
         setIngredients(prevIngredients => prevIngredients.filter(item => item.id !== id));
     };
 
-    function handleAddMeal() {
+    const handleAddMeal = () => {
         const simplifiedIngredients = ingredients.map(ingredient => ({
             id: ingredient.id,
             unit: ingredient.unit,
@@ -137,8 +130,6 @@ function RecipeBuilder() {
             name: recipeName,
             ingredients: simplifiedIngredients
         };
-
-        console.log(meal);
 
         const url = mealId ? `/api/meals/${mealId}` : '/api/meals';
         const method = mealId ? 'PUT' : 'POST';
@@ -152,29 +143,24 @@ function RecipeBuilder() {
         })
             .then(response => response.json())
             .then(data => {
-                console.log('Meal saved:', data);
                 alert(`Meal successfully ${mealId ? 'updated' : 'added'}!`);
                 localStorage.removeItem('currentMeal');
                 navigate('/meals');
-                // Additional reset if necessary
             })
             .catch(error => {
-                console.error(`Error ${mealId ? 'updating' : 'saving'} meal:`, error);
                 alert(`Failed to ${mealId ? 'update' : 'add'} the meal. Please try again!`);
+                console.error(`Error ${mealId ? 'updating' : 'saving'} meal:`, error);
             });
-    }
+    };
 
     return (
         <PageContainer>
             <PageContainer.Header>
-                <NavBar
-                    title="Meal builder"
-                    backButton="/"
-                />
+                <NavBar title="Meal builder" />
             </PageContainer.Header>
             <PageContainer.Content>
-                <div className='flex flex-col gap-2'>
-                    <p className='font-bold text-black/60 grow mt-4'>Recipe name</p>
+                <div className="flex flex-col gap-2">
+                    <p className="font-bold text-black/60 mt-4">Recipe name</p>
                     <input
                         type="text"
                         placeholder="Give it a name..."
@@ -184,26 +170,21 @@ function RecipeBuilder() {
                         disabled={!isEditing}
                     />
                 </div>
-
-                <div className='flex items-center mb-2'>
-                    <div className='grow'>
-                        <p className='font-bold text-black/60 grow mt-4'>Ingredients</p>
-                        <p className='text-sm font-light'>What's needed for this meal</p>
+                <div className="flex items-center mb-2">
+                    <div className="grow">
+                        <p className="font-bold text-black/60 mt-4">Ingredients</p>
+                        <p className="text-sm font-light">What's needed for this meal</p>
                     </div>
                     {isEditing && (
-                        <Button
-                            onClick={() => setAddIngredients(true)}
-                        >
-                            Add
-                        </Button>
-                    )
-                    }
+                        <Button onClick={() => setAddIngredients(true)}>Add</Button>
+                    )}
                 </div>
-                <div className='flex flex-col gap-2'>
+                <div className="flex flex-col gap-2">
                     {ingredients.length > 0 && (
                         <CardContainer>
                             {ingredients.map(ingredient => (
                                 <Card
+                                    key={ingredient.id}
                                     title={ingredient.name}
                                     description={`${ingredient.quantity} ${ingredient.unit}`}
                                     buttonType="remove"
@@ -213,76 +194,53 @@ function RecipeBuilder() {
                         </CardContainer>
                     )}
                     {isEditing && !mealId && (
-                        <Button
-                            onClick={handleAddMeal}
-                            disabled={ingredients.length === 0 || !recipeName}
-                        >
-                            Save
-                        </Button>
+                        <Button onClick={handleAddMeal} disabled={ingredients.length === 0 || !recipeName}>Save</Button>
                     )}
                     {!isEditing && mealId && (
-                        <Button
-                            onClick={() => setIsEditing(true)}
-                        >
-                            Edit
-                        </Button>
+                        <Button onClick={() => setIsEditing(true)}>Edit</Button>
                     )}
                     {isEditing && mealId && (
                         <>
-                            <Button
-                                onClick={handleAddMeal}
-                                disabled={ingredients.length === 0 || !recipeName}
-                            >
-                                Save
-                            </Button>
-                            <Button.Secondary
-                                onClick={() => setIsEditing(false)}
-                            >
-                                Cancel edit
-                            </Button.Secondary>
+                            <Button onClick={handleAddMeal} disabled={ingredients.length === 0 || !recipeName}>Save</Button>
+                            <Button.Secondary onClick={() => setIsEditing(false)}>Cancel edit</Button.Secondary>
                         </>
                     )}
                 </div>
-                {
-                    addIngredients && <IngredientSearch onIngredientSelect={handleIngredientSelect} onClose={() => setAddIngredients(false)} />
-                }
-                {modalVisible && (
-                    <div className="modal modal-open">
-                        <div className="modal-box">
-                            <h3 className="font-bold text-lg">Add Ingredient - {currentIngredient?.name}</h3>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Quantity</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    placeholder="Enter quantity"
-                                    className="input input-bordered"
-                                    value={quantity}
-                                    onChange={(e) => setQuantity(e.target.value)}
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Unit</span>
-                                </label>
-                                <select
-                                    className="select select-bordered"
-                                    value={unit}
-                                    onChange={(e) => setUnit(e.target.value)}>
-                                    <option value="" disabled={!unit}>Select a unit</option>
-                                    {commonUnits.map(option => (
-                                        <option key={option.value} value={option.value}>{option.label}</option>
-                                    ))}
-                                </select>
-
-                            </div>
-                            <div className="modal-action">
-                                <button className="btn btn-primary" disabled={!quantity || !unit} onClick={addIngredientToRecipe}>Add</button>
-                                <button className="btn" onClick={() => setModalVisible(false)}>Cancel</button>
-                            </div>
+                {addIngredients && <IngredientSearch onIngredientSelect={handleIngredientSelect} onClose={() => setAddIngredients(false)} />}
+                {isModalOpen && (
+                    <Modal title={`Add Ingredient - ${currentIngredient?.name}`} onClose={toggleModal}>
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">Quantity</span>
+                            </label>
+                            <input
+                                type="number"
+                                placeholder="Enter quantity"
+                                className="input input-bordered"
+                                value={quantity}
+                                onChange={(e) => setQuantity(e.target.value)}
+                            />
                         </div>
-                    </div>
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">Unit</span>
+                            </label>
+                            <select
+                                className="select select-bordered"
+                                value={unit}
+                                onChange={(e) => setUnit(e.target.value)}
+                            >
+                                <option value="" disabled={!unit}>Select a unit</option>
+                                {commonUnits.map(option => (
+                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="modal-action flex justify-end gap-2 mt-4">
+                            <button className="btn bg-blue-500 text-white" disabled={!quantity || !unit} onClick={addIngredientToRecipe}>Add</button>
+                            <button className="btn bg-gray-300" onClick={toggleModal}>Cancel</button>
+                        </div>
+                    </Modal>
                 )}
             </PageContainer.Content>
         </PageContainer>

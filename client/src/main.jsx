@@ -2,14 +2,16 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import Root from './routes/root';
-import ErrorPage from './routes/error-page';
-import RecipeBuilder from './routes/recipe-builder';
-import Meals from './routes/meals';
-import MealDetails from './routes/meal-details';
-import MealPlanList from './components/MealPlanList';
-import MealPlanForm from './components/MealPlanForm';
-import AddMealPlanDay from './components/AddMealPlanDay';
+import Root from './routes/Root';
+import ErrorPage from './routes/ErrorPage';
+import RecipeBuilder from './components/meal/RecipeBuilder';
+import Meals from './components/meal/Meals';
+import MealDetails from './components/meal/MealDetails';
+import MealPlanList from './components/mealPlan/MealPlanList';
+import MealPlanForm from './components/mealPlan/MealPlanForm';
+import AddMealPlanDay from './components/mealPlan/AddMealPlanDay';
+import HomePage from './components/HomePage';
+import MealPlanOptions from './components/mealPlan/MealPlanOptions';
 
 const router = createBrowserRouter([
   {
@@ -19,6 +21,10 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
+        element: <HomePage />,
+      },
+      {
+        path: "meal-plans",
         element: <MealPlanList />,
       },
       {
@@ -26,16 +32,20 @@ const router = createBrowserRouter([
         element: <MealPlanForm />,
       },
       {
-        path: "plan/:mealPlanId",
+        path: "plan/:mealPlanId/options",
+        element: <MealPlanOptions />,
+      },
+      {
+        path: "plan/:mealPlanId/add-meals",
         element: <AddMealPlanDay />,
       },
       {
         path: "recipe-builder",
-        element: <RecipeBuilder />, // Route for creating a new meal
+        element: <RecipeBuilder />,
       },
       {
         path: "recipe-builder/:mealId",
-        element: <RecipeBuilder />, // Route for editing an existing meal
+        element: <RecipeBuilder />,
       },
       {
         path: "meals",

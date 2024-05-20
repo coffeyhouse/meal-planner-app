@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import NavBar from './NavBar';
-import PageContainer from './PageContainer';
-import Button from './Button';
+import NavBar from '../common/NavBar';
+import PageContainer from '../layout/PageContainer';
+import Button from '../common/Button';
 
 function MealPlanForm() {
     const [startDate, setStartDate] = useState('');
@@ -41,7 +41,7 @@ function MealPlanForm() {
     return (
         <PageContainer>
             <PageContainer.Header>
-                <NavBar title="Create a meal plan" backButton="/" />
+                <NavBar title="Create a meal plan" />
             </PageContainer.Header>
             <PageContainer.Content>
                 <form onSubmit={handleSubmit} className='flex flex-col gap-2 w-full'>
