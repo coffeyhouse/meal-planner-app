@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import NavBar from './common/NavBar';
 import PageContainer from './layout/PageContainer';
-import MealCard from './MealCard';
+import MealCard from './meal/MealCard';
 import Heading from './common/Heading';
 
 function HomePage() {

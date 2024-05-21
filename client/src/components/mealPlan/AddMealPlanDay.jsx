@@ -8,8 +8,12 @@ import Modal from '../common/Modal';
 import Button from '../common/Button';
 import ShoppingList from '../common/ShoppingList';
 import Heading from '../common/Heading';
+import MealGrid from '../meal/MealGrid';
+import SearchBar from '../common/SearchBar'; 
 import dayjs from 'dayjs';
-import { getDateRange, parseDate, formatDayAndWeekday } from '../../utils';
+import { getDateRange, formatDayAndWeekday } from '../../utils';
+import { searchItems } from '../../utils/search'; 
+import MealCard from '../meal/MealCard';
 
 function AddMealPlanDay() {
     const { mealPlanId } = useParams();
@@ -23,6 +27,7 @@ function AddMealPlanDay() {
     const [error, setError] = useState('');
     const [dates, setDates] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState(''); // Add search query state
     const [shoppingList, setShoppingList] = useState(null);
     const [isShoppingListModalOpen, setIsShoppingListModalOpen] = useState(false);
 
@@ -84,6 +89,12 @@ function AddMealPlanDay() {
 
     const mealsForSelectedDate = getMealsForDate(selectedDate);
 
+    const handleSearchChange = (event) => {
+        setSearchQuery(event.target.value);
+    };
+
+    const filteredMeals = searchItems(meals, ['name'], searchQuery);
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         setIsLoading(true);
@@ -100,9 +111,34 @@ function AddMealPlanDay() {
                 throw new Error('Failed to add meal to the meal plan');
             }
 
-            alert('Meal added successfully to the meal plan!');
             setMealType('');
             setMealId('');
+            await fetchData(selectedDate);
+            setIsModalOpen(false);
+        } catch (error) {
+            setError(error.message);
+            console.error('Error adding meal to meal plan:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleMealSelect = async (meal) => {
+        setMealId(meal.id);
+        setIsLoading(true);
+        setError('');
+
+        try {
+            const response = await fetch(`/api/meal-plans/${mealPlanId}/meals`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date: selectedDate, mealId: meal.id, mealType })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add meal to the meal plan');
+            }
+
             await fetchData(selectedDate);
             setIsModalOpen(false);
         } catch (error) {
@@ -122,7 +158,6 @@ function AddMealPlanDay() {
             const shoppingListData = await response.json();
             setShoppingList(shoppingListData);
             toggleShoppingListModal();
-            alert('Shopping list created successfully!');
         } catch (error) {
             alert(`Error: ${error.message}`);
         }
@@ -149,11 +184,11 @@ function AddMealPlanDay() {
                                 return (
                                     <button
                                         key={date}
-                                        className={`flex flex-col items-center rounded px-3 pb-1.5 ${isSelectedDate ? 'bg-orange-500 text-white' : 'bg-transparent text-black'}`}
+                                        className={`flex flex-col items-center rounded px-3 pb-1.5 ${isSelectedDate ? 'bg-[#70B9BE] text-white' : 'bg-transparent text-black'}`}
                                         onClick={() => setSelectedDate(date)}
                                     >
                                         <div className="flex flex-col items-center">
-                                            <span className={`mt-1 h-1 w-1 rounded-full ${hasMeals ? (isSelectedDate ? 'bg-white' : 'bg-orange-500') : 'bg-transparent'}`}></span>
+                                            <span className={`mt-1 h-1 w-1 rounded-full ${hasMeals ? (isSelectedDate ? 'bg-white' : 'bg-[#70B9BE]') : 'bg-transparent'}`}></span>
                                             <div className="flex flex-col gap-1">
                                                 <p className="text-xs">{weekdayInitial}</p>
                                                 <p className="text-xs font-semibold">{day}</p>
@@ -172,14 +207,17 @@ function AddMealPlanDay() {
                             <CardContainer key={type}>
                                 <Heading variant="h3" className="mt-4">{type.charAt(0).toUpperCase() + type.slice(1)}</Heading>
                                 {mealsForSelectedDate[type] ? (
-                                    <Card
-                                        title={mealsForSelectedDate[type].name}
-                                        description="Future state to add sides"
-                                        image={`https://picsum.photos/300?random=${Math.random()}`}
-                                        buttonType="edit"
-                                    />
+                                    <MealCard meal={mealsForSelectedDate[type]} action="add">
+
+                                    </MealCard>
+                                    // <Card
+                                    //     title={mealsForSelectedDate[type].name}
+                                    //     description="Future state to add sides"
+                                    //     image={`https://picsum.photos/300?random=${Math.random()}`}
+                                    //     buttonType="edit"
+                                    // />
                                 ) : (
-                                    <Button onClick={() => openModal(type)}>Add {type}</Button>
+                                    <Button.Secondary onClick={() => openModal(type)}>Add {type}</Button.Secondary>
                                 )}
                             </CardContainer>
                         ))}
@@ -192,22 +230,8 @@ function AddMealPlanDay() {
 
             {isModalOpen && (
                 <Modal title="Select a meal" onClose={toggleModal}>
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                        <select
-                            className="rounded p-4 border bg-white"
-                            value={mealId}
-                            onChange={e => setMealId(e.target.value)}
-                            required
-                        >
-                            <option value="">Choose one...</option>
-                            {meals.map(meal => (
-                                <option key={meal.id} value={meal.id}>{meal.name}</option>
-                            ))}
-                        </select>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? 'Adding...' : 'Add Meal'}
-                        </Button>
-                    </form>
+                    <SearchBar searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
+                    <MealGrid meals={filteredMeals} onMealSelect={handleMealSelect} />
                 </Modal>
             )}
 
