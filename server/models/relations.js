@@ -1,6 +1,7 @@
 // models/relations.js
 
 const Meal = require('./Meal');
+const Author = require('./Author');
 const Ingredient = require('./Ingredient');
 const MealIngredient = require('./MealIngredient');
 const ShoppingList = require('./ShoppingList');
@@ -16,3 +17,6 @@ ShoppingList.belongsTo(Ingredient, { foreignKey: 'ingredientId' });
 
 MealPlan.hasMany(MealPlanDay, {foreignKey: 'mealPlanId'});
 Meal.hasMany(MealPlanDay, {foreignKey: 'mealId'});
+
+Meal.belongsTo(Author, { foreignKey: 'authorId' });
+Author.hasMany(Meal, { foreignKey: 'authorId' });
