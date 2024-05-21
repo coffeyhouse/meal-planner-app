@@ -32,6 +32,7 @@ function RecipeBuilder() {
     const [addIngredients, setAddIngredients] = useState(false);
     const [commonUnits, setCommonUnits] = useState([...baseUnits]);
     const [isEditing, setIsEditing] = useState(true);
+    const [imageURL, setImageURL] = useState(''); // Add state for image URL
 
     const toggleModal = () => setIsModalOpen(!isModalOpen);
 
@@ -48,6 +49,7 @@ function RecipeBuilder() {
                         quantity: ing.quantity.toString(),
                         unit: ing.unit
                     })));
+                    setImageURL(data.imageUrl || ''); // Set the image URL
                     setIsEditing(false);
                 })
                 .catch(error => console.error('Error fetching meal details:', error));
@@ -129,7 +131,8 @@ function RecipeBuilder() {
 
         const meal = {
             name: recipeName,
-            ingredients: simplifiedIngredients
+            ingredients: simplifiedIngredients,
+            imageUrl: imageURL // Add imageURL to the meal object
         };
 
         const url = mealId ? `/api/meals/${mealId}` : '/api/meals';
@@ -154,6 +157,30 @@ function RecipeBuilder() {
             });
     };
 
+    const handleImageUpload = () => {
+        if (imageURL.trim() === '') {
+            alert('Please enter a valid image URL');
+            return;
+        }
+
+        fetch('/api/upload-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ url: imageURL, mealId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                setImageURL(data.imageUrl);
+                alert('Image uploaded successfully!');
+            })
+            .catch(error => {
+                alert('Failed to upload image. Please try again!');
+                console.error('Error uploading image:', error);
+            });
+    };
+
     return (
         <PageContainer>
             <PageContainer.Header>
@@ -172,8 +199,21 @@ function RecipeBuilder() {
                             disabled={!isEditing}
                         />
                     </div>
+                    <div className="flex flex-col gap-2">
+                        <Heading variant="h3">Image URL</Heading>
+                        <input
+                            type="text"
+                            placeholder="Enter image URL..."
+                            className="bg-white p-2 border"
+                            value={imageURL}
+                            onChange={(e) => setImageURL(e.target.value)}
+                            disabled={!isEditing}
+                        />
+                        {isEditing && (
+                            <Button onClick={handleImageUpload}>Upload Image</Button>
+                        )}
+                    </div>
                     <div>
-
                         <div className="flex items-center mb-2">
                             <div className="grow">
                                 <Heading variant="h3">Ingredients</Heading>

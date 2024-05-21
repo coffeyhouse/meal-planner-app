@@ -1,5 +1,4 @@
 // server.js
-
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -11,15 +10,20 @@ require('./models/relations'); // This will automatically set up relationships
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the public directory
+app.use(express.static('public'));
+
 const mealsRoutes = require('./routes/meals');
 const ingredientsRoutes = require('./routes/ingredients');
 const shoppingListRoutes = require('./routes/shopping-list');
 const mealPlanRoutes = require('./routes/meal-plans');
+const uploadRoutes = require('./routes/upload'); // Add the upload route
 
 app.use('/api/meals', mealsRoutes);
 app.use('/api/ingredients', ingredientsRoutes);
 app.use('/api/shopping-list', shoppingListRoutes);
 app.use('/api/meal-plans', mealPlanRoutes);
+app.use('/api', uploadRoutes); // Use the upload route
 
 const PORT = process.env.PORT || 5000;
 

@@ -12,6 +12,7 @@ function serializeMeal(meal) {
     return {
         id: meal.id,
         name: meal.name,
+        imageUrl: meal.imageUrl, // Include imageUrl here
         createdAt: meal.createdAt,
         updatedAt: meal.updatedAt,
         ingredients: meal.Ingredients.map(ing => ({
@@ -25,13 +26,14 @@ function serializeMeal(meal) {
 }
 
 
+
 // POST /api/meals - Create a new meal with ingredients
 router.post('/', async (req, res) => {
-    const { name, ingredients } = req.body;
+    const { name, imageUrl, ingredients } = req.body;
 
     try {
         // Create the new meal
-        const newMeal = await Meal.create({ name });
+        const newMeal = await Meal.create({ name, imageUrl }); // Include imageUrl here
 
         // Prepare the meal-ingredients associations with quantity and unit
         const mealIngredients = ingredients.map(ing => ({
@@ -64,9 +66,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-
-
-// GET /api/meals - Get all meals optionally filtered by date range
+// GET /api/meals - Get all meals
 router.get('/', async (req, res) => {
     const queryOptions = {
         include: [{
@@ -80,9 +80,6 @@ router.get('/', async (req, res) => {
         }],
         order: [['createdAt', 'ASC']] // Updated to use an existing column
     };
-
-    // Optionally handle any additional filtering or ordering based on other criteria
-    // Removed date filtering since 'date' column doesn't exist
 
     try {
         const meals = await Meal.findAll(queryOptions);
@@ -121,11 +118,10 @@ router.get('/:mealId', async (req, res) => {
     }
 });
 
-
 // PUT /api/meals/:id - Update a meal
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { name, ingredients } = req.body;
+    const { name, imageUrl, ingredients } = req.body; // Include imageUrl here
 
     try {
         const meal = await Meal.findByPk(id);
@@ -133,8 +129,9 @@ router.put('/:id', async (req, res) => {
             return res.status(404).json({ message: "Meal not found" });
         }
 
-        // Update the meal's name
+        // Update the meal's name and imageUrl
         meal.name = name;
+        meal.imageUrl = imageUrl; // Include imageUrl here
         await meal.save();
 
         // Remove all existing ingredients associated with this meal
@@ -167,7 +164,6 @@ router.put('/:id', async (req, res) => {
         res.status(500).json({ error: 'Failed to update meal' });
     }
 });
-
 
 // DELETE /api/meals/:id - Delete a meal
 router.delete('/:id', async (req, res) => {

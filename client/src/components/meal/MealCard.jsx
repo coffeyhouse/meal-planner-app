@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { RxPlus, RxHeartFilled  } from "react-icons/rx";
+import { RxPlus, RxHeartFilled } from "react-icons/rx";
 
 const authors = [
     {
@@ -33,12 +33,14 @@ function getRandomAuthor() {
 function MealCard({ meal, action }) {
     const { name, image } = getRandomAuthor();
 
+    const imageUrl = meal.imageUrl ? `http://localhost:5000${meal.imageUrl}` : `https://picsum.photos/300?random=${meal.id}`;
+
     if (action === "add") {
         return (
             <div className='rounded-2xl bg-white p-2 flex gap-3 shadow-lg shadow-gray-200 items-center'>
                 <div className={`flex p-2 items-start justify-end h-[70px] w-[85px] 
                     bg-cover bg-center bg-no-repeat 
-                    bg-[url("${`https://picsum.photos/300?random=${meal.id}`}")] rounded-2xl`}>
+                    bg-[url("${imageUrl}")] rounded-2xl`}>
                 </div>
                 <div className='flex flex-col gap-1 grow'>
                     <p className='font-bold text-sm'>{meal.name}</p>
@@ -57,7 +59,7 @@ function MealCard({ meal, action }) {
         <Link to={`/recipe-builder/${meal.id}`} className='rounded-2xl bg-white p-3 flex flex-col gap-2 shadow-lg shadow-gray-200'>
             <div className={`flex p-2 items-start justify-end h-[100px] w-[100%] 
                     bg-cover bg-center bg-no-repeat 
-                    bg-[url("${`https://picsum.photos/300?random=${meal.id}`}")] rounded-2xl`}>
+                    bg-[url("${imageUrl}")] rounded-2xl`}>
                 <div className='bg-white p-1 rounded-lg text-[#FA691A]'><RxHeartFilled /></div>
             </div>
             <p className='font-bold text-sm'>{meal.name}</p>
