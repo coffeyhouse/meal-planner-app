@@ -1,6 +1,7 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); // Add this import to handle paths correctly
 const app = express();
 
 // Import Sequelize and model setup
@@ -11,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static files from the public directory
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const mealsRoutes = require('./routes/meals');
 const ingredientsRoutes = require('./routes/ingredients');
