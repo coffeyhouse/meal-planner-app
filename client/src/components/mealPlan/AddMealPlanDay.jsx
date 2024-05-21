@@ -2,24 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import PageContainer from '../layout/PageContainer';
 import NavBar from '../common/NavBar';
-import Card from '../common/Card';
 import CardContainer from '../common/CardContainer';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import ShoppingList from '../common/ShoppingList';
 import Heading from '../common/Heading';
 import MealGrid from '../meal/MealGrid';
-import SearchBar from '../common/SearchBar'; 
+import SearchBar from '../common/SearchBar';
 import dayjs from 'dayjs';
 import { getDateRange, formatDayAndWeekday } from '../../utils';
-import { searchItems } from '../../utils/search'; 
+import { searchItems } from '../../utils/search';
 import MealCard from '../meal/MealCard';
 
 function AddMealPlanDay() {
     const { mealPlanId } = useParams();
     const [mealPlan, setMealPlan] = useState(null);
     const [selectedDate, setSelectedDate] = useState('');
-    const [mealId, setMealId] = useState('');
     const [mealType, setMealType] = useState('');
     const [meals, setMeals] = useState([]);
     const [mealPlanDays, setMealPlanDays] = useState([]);
@@ -30,8 +28,15 @@ function AddMealPlanDay() {
     const [searchQuery, setSearchQuery] = useState(''); // Add search query state
     const [shoppingList, setShoppingList] = useState(null);
     const [isShoppingListModalOpen, setIsShoppingListModalOpen] = useState(false);
+    const [editingMealType, setEditingMealType] = useState(''); // Add state for editing meal type
 
-    const toggleModal = () => setIsModalOpen(!isModalOpen);
+    const toggleModal = () => {
+        setIsModalOpen(!isModalOpen);
+        if (isModalOpen) {
+            setEditingMealType(''); // Reset editingMealType when the modal is closed
+        }
+    };
+
     const toggleShoppingListModal = () => setIsShoppingListModalOpen(!isShoppingListModalOpen);
 
     const fetchData = async () => {
@@ -95,8 +100,7 @@ function AddMealPlanDay() {
 
     const filteredMeals = searchItems(meals, ['name'], searchQuery);
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    const handleMealSelect = async (meal) => {
         setIsLoading(true);
         setError('');
 
@@ -104,17 +108,16 @@ function AddMealPlanDay() {
             const response = await fetch(`/api/meal-plans/${mealPlanId}/meals`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date: selectedDate, mealId, mealType })
+                body: JSON.stringify({ date: selectedDate, mealId: meal.id, mealType: editingMealType || mealType }) // Use editingMealType if set
             });
 
             if (!response.ok) {
                 throw new Error('Failed to add meal to the meal plan');
             }
 
-            setMealType('');
-            setMealId('');
             await fetchData(selectedDate);
             setIsModalOpen(false);
+            setEditingMealType(''); // Reset editingMealType
         } catch (error) {
             setError(error.message);
             console.error('Error adding meal to meal plan:', error);
@@ -123,27 +126,27 @@ function AddMealPlanDay() {
         }
     };
 
-    const handleMealSelect = async (meal) => {
-        setMealId(meal.id);
+    const handleDeleteMeal = async () => {
         setIsLoading(true);
         setError('');
 
         try {
-            const response = await fetch(`/api/meal-plans/${mealPlanId}/meals`, {
+            const response = await fetch(`/api/meal-plans/${mealPlanId}/meals/delete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date: selectedDate, mealId: meal.id, mealType })
+                body: JSON.stringify({ date: selectedDate, mealType: editingMealType })
             });
 
             if (!response.ok) {
-                throw new Error('Failed to add meal to the meal plan');
+                throw new Error('Failed to delete meal from the meal plan');
             }
 
             await fetchData(selectedDate);
             setIsModalOpen(false);
+            setEditingMealType('');
         } catch (error) {
             setError(error.message);
-            console.error('Error adding meal to meal plan:', error);
+            console.error('Error deleting meal from meal plan:', error);
         } finally {
             setIsLoading(false);
         }
@@ -165,6 +168,12 @@ function AddMealPlanDay() {
 
     function openModal(meal) {
         setMealType(meal);
+        setEditingMealType(''); // Reset editingMealType
+        toggleModal();
+    }
+
+    function handleMealCardClick(type) {
+        setEditingMealType(type);
         toggleModal();
     }
 
@@ -207,15 +216,7 @@ function AddMealPlanDay() {
                             <CardContainer key={type}>
                                 <Heading variant="h3" className="mt-4">{type.charAt(0).toUpperCase() + type.slice(1)}</Heading>
                                 {mealsForSelectedDate[type] ? (
-                                    <MealCard meal={mealsForSelectedDate[type]} action="add">
-
-                                    </MealCard>
-                                    // <Card
-                                    //     title={mealsForSelectedDate[type].name}
-                                    //     description="Future state to add sides"
-                                    //     image={`https://picsum.photos/300?random=${Math.random()}`}
-                                    //     buttonType="edit"
-                                    // />
+                                    <MealCard meal={mealsForSelectedDate[type]} action="add" onClick={() => handleMealCardClick(type)} />
                                 ) : (
                                     <Button.Secondary onClick={() => openModal(type)}>Add {type}</Button.Secondary>
                                 )}
@@ -230,8 +231,17 @@ function AddMealPlanDay() {
 
             {isModalOpen && (
                 <Modal title="Select a meal" onClose={toggleModal}>
-                    <SearchBar searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
-                    <MealGrid meals={filteredMeals} onMealSelect={handleMealSelect} />
+                    <div className='flex flex-col gap-2'>
+                        {editingMealType && (
+                            <span className='mb-8 flex flex-col'>
+                                <Button.Destructive onClick={handleDeleteMeal}>Delete meal</Button.Destructive>
+                            </span>
+                        )}
+                        <div className='flex flex-col'>
+                            <SearchBar searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
+                            <MealGrid meals={filteredMeals} onMealSelect={handleMealSelect} />
+                        </div>
+                    </div>
                 </Modal>
             )}
 
