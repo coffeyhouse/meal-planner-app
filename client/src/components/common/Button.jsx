@@ -22,4 +22,15 @@ Button.Secondary = function Secondary({ children, ...rest }) {
     );
 };
 
+Button.Destructive = function Destructive({ children, ...rest }) {
+    return (
+        <button
+        className='px-4 py-2 font-semibold text-sm bg-red-500 border border-red-500 rounded-xl px-3 text-white'
+        {...rest}
+    >
+        {children}
+    </button>
+    );
+};
+
 export default Button;
