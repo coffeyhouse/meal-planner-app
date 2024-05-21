@@ -1,3 +1,4 @@
+// RecipeBuilder.jsx
 import React, { useState, useEffect } from 'react';
 import IngredientSearch from '../IngredientSearch';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -24,6 +25,7 @@ function RecipeBuilder() {
     const { mealId } = useParams();
     const navigate = useNavigate();
     const [recipeName, setRecipeName] = useState('');
+    const [authorName, setAuthorName] = useState(''); // State for author name
     const [ingredients, setIngredients] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentIngredient, setCurrentIngredient] = useState(null);
@@ -32,7 +34,7 @@ function RecipeBuilder() {
     const [addIngredients, setAddIngredients] = useState(false);
     const [commonUnits, setCommonUnits] = useState([...baseUnits]);
     const [isEditing, setIsEditing] = useState(true);
-    const [imageURL, setImageURL] = useState(''); // Add state for image URL
+    const [imageURL, setImageURL] = useState('');
 
     const toggleModal = () => setIsModalOpen(!isModalOpen);
 
@@ -42,6 +44,7 @@ function RecipeBuilder() {
                 .then(response => response.json())
                 .then(data => {
                     setRecipeName(data.name);
+                    setAuthorName(data.author || ''); // Set author name
                     setIngredients(data.ingredients.map(ing => ({
                         ...ing,
                         id: ing.id,
@@ -49,7 +52,7 @@ function RecipeBuilder() {
                         quantity: ing.quantity.toString(),
                         unit: ing.unit
                     })));
-                    setImageURL(data.imageUrl || ''); // Set the image URL
+                    setImageURL(data.imageUrl || '');
                     setIsEditing(false);
                 })
                 .catch(error => console.error('Error fetching meal details:', error));
@@ -60,11 +63,13 @@ function RecipeBuilder() {
         if (!mealId) {
             const savedMealData = localStorage.getItem('currentMeal');
             if (savedMealData) {
-                const { recipeName, ingredients } = JSON.parse(savedMealData);
+                const { recipeName, authorName, ingredients, imageURL } = JSON.parse(savedMealData);
                 if (recipeName || ingredients.length > 0) {
                     if (window.confirm("Do you want to continue with your previous meal?")) {
                         setRecipeName(recipeName);
+                        setAuthorName(authorName);
                         setIngredients(ingredients);
+                        setImageURL(imageURL);
                         localStorage.removeItem('currentMeal');
                     } else {
                         localStorage.removeItem('currentMeal');
@@ -78,11 +83,13 @@ function RecipeBuilder() {
         if (!mealId) {
             const mealData = {
                 recipeName,
-                ingredients
+                authorName,
+                ingredients,
+                imageURL
             };
             localStorage.setItem('currentMeal', JSON.stringify(mealData));
         }
-    }, [recipeName, ingredients]);
+    }, [recipeName, authorName, ingredients, imageURL]);
 
     const handleIngredientSelect = (ingredient) => {
         setCurrentIngredient(ingredient);
@@ -131,8 +138,9 @@ function RecipeBuilder() {
 
         const meal = {
             name: recipeName,
+            authorName, // Add authorName to the meal object
             ingredients: simplifiedIngredients,
-            imageUrl: imageURL // Add imageURL to the meal object
+            imageUrl: imageURL
         };
 
         const url = mealId ? `/api/meals/${mealId}` : '/api/meals';
@@ -196,6 +204,17 @@ function RecipeBuilder() {
                             className="bg-white p-2 border"
                             value={recipeName}
                             onChange={(e) => setRecipeName(e.target.value)}
+                            disabled={!isEditing}
+                        />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Heading variant="h3">Author name</Heading>
+                        <input
+                            type="text"
+                            placeholder="Enter author name..."
+                            className="bg-white p-2 border"
+                            value={authorName}
+                            onChange={(e) => setAuthorName(e.target.value)}
                             disabled={!isEditing}
                         />
                     </div>
