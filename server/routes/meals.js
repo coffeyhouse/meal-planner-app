@@ -1,9 +1,10 @@
 // routes/meals.js
 
 const express = require('express');
-const Meal = require('../models/Meal')
-const MealIngredient = require('../models/MealIngredient')
-const Ingredient = require('../models/Ingredient')
+const Meal = require('../models/Meal');
+const Author = require('../models/Author');
+const Ingredient = require('../models/Ingredient');
+const MealIngredient = require('../models/MealIngredient');
 const router = express.Router();
 const { Op } = require('sequelize');
 
@@ -12,53 +13,63 @@ function serializeMeal(meal) {
     return {
         id: meal.id,
         name: meal.name,
-        imageUrl: meal.imageUrl, // Include imageUrl here
+        imageUrl: meal.imageUrl,
         createdAt: meal.createdAt,
         updatedAt: meal.updatedAt,
+        author: meal.Author ? meal.Author.name : null,
         ingredients: meal.Ingredients.map(ing => ({
             id: ing.id,
             name: ing.name,
             category: ing.category,
             quantity: ing.MealIngredient.quantity,
-            unit: ing.MealIngredient.unit // Ensure unit is included in the serialization
+            unit: ing.MealIngredient.unit
         }))
     };
 }
 
-
-
 // POST /api/meals - Create a new meal with ingredients
 router.post('/', async (req, res) => {
-    const { name, imageUrl, ingredients } = req.body;
+    const { name, ingredients, imageUrl, authorName } = req.body;
 
     try {
+        // Find or create the author
+        let author = await Author.findOne({ where: { name: authorName } });
+        if (!author) {
+            author = await Author.create({ name: authorName });
+        }
+
         // Create the new meal
-        const newMeal = await Meal.create({ name, imageUrl }); // Include imageUrl here
+        const newMeal = await Meal.create({ name, imageUrl, authorId: author.id });
 
         // Prepare the meal-ingredients associations with quantity and unit
         const mealIngredients = ingredients.map(ing => ({
             MealId: newMeal.id,
             IngredientId: ing.id,
             quantity: ing.quantity,
-            unit: ing.unit // Include unit from the provided ingredient data
+            unit: ing.unit
         }));
 
         // Bulk create meal ingredient associations
         await MealIngredient.bulkCreate(mealIngredients);
 
-        // Fetch the newly created meal with its associated ingredients
+        // Fetch the newly created meal with its associated ingredients and author
         const mealWithIngredients = await Meal.findByPk(newMeal.id, {
-            include: [{
-                model: Ingredient,
-                as: 'Ingredients',
-                attributes: ['name', 'category'],
-                through: {
-                    attributes: ['quantity', 'unit'] // Include unit here as well
+            include: [
+                {
+                    model: Ingredient,
+                    as: 'Ingredients',
+                    attributes: ['name', 'category'],
+                    through: {
+                        attributes: ['quantity', 'unit']
+                    }
+                },
+                {
+                    model: Author,
+                    attributes: ['name']
                 }
-            }]
+            ]
         });
 
-        // Respond with the newly created meal and its ingredients
         res.status(201).json(serializeMeal(mealWithIngredients));
     } catch (error) {
         console.error('Failed to create meal and ingredients:', error);
