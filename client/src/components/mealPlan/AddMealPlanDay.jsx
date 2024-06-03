@@ -1,3 +1,5 @@
+// src/components/mealPlan/AddMealPlanDay.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import PageContainer from '../layout/PageContainer';
@@ -13,75 +15,52 @@ import dayjs from 'dayjs';
 import { getDateRange, formatDayAndWeekday } from '../../utils';
 import { searchItems } from '../../utils/search';
 import MealCard from '../meal/MealCard';
-import { RxCross1 } from "react-icons/rx";
+import { RxCross1 } from 'react-icons/rx';
+import useFetch from '../../hooks/useFetch';
+import usePost from '../../hooks/usePost';
+import Notification from '../common/Notification';
 
 function AddMealPlanDay() {
     const { mealPlanId } = useParams();
-    const [mealPlan, setMealPlan] = useState(null);
+    const { data: meals, loading: mealsLoading, error: mealsError } = useFetch('/api/meals');
+    const { data: mealPlan, loading: mealPlanLoading, error: mealPlanError, refetch } = useFetch(`/api/meal-plans/${mealPlanId}`);
+
     const [selectedDate, setSelectedDate] = useState('');
     const [mealType, setMealType] = useState('');
-    const [meals, setMeals] = useState([]);
     const [mealPlanDays, setMealPlanDays] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
     const [dates, setDates] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState(''); // Add search query state
+    const [searchQuery, setSearchQuery] = useState('');
     const [shoppingList, setShoppingList] = useState(null);
     const [isShoppingListModalOpen, setIsShoppingListModalOpen] = useState(false);
     const [isMealModalOpen, setIsMealModalOpen] = useState(false);
-    const [editingMealType, setEditingMealType] = useState(''); // Add state for editing meal type
+    const [editingMealType, setEditingMealType] = useState('');
     const [selectedMeal, setSelectedMeal] = useState(null);
+
+    const { postData: addMealToPlan, loading: addLoading, error: addError, notification: addNotification, setNotification: setAddNotification } = usePost(`/api/meal-plans/${mealPlanId}/meals`);
+    const { postData: deleteMealFromPlan, loading: deleteLoading, error: deleteError, notification: deleteNotification, setNotification: setDeleteNotification } = usePost(`/api/meal-plans/${mealPlanId}/meals/delete`);
 
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen);
         if (isModalOpen) {
-            setEditingMealType(''); // Reset editingMealType when the modal is closed
+            setEditingMealType('');
         }
     };
 
     const toggleShoppingListModal = () => setIsShoppingListModalOpen(!isShoppingListModalOpen);
     const toggleMealModal = () => setIsMealModalOpen(!isMealModalOpen);
 
-    const fetchData = async () => {
-        setIsLoading(true);
-        try {
-            const mealsResponse = await fetch('/api/meals');
-            const mealsData = await mealsResponse.json();
-            setMeals(mealsData);
-
-            const mealPlanResponse = await fetch(`/api/meal-plans/${mealPlanId}`);
-            const mealPlanData = await mealPlanResponse.json();
-            setMealPlan(mealPlanData);
-            setMealPlanDays(mealPlanData.MealPlanDays);
-
-            if (!selectedDate) {
-                const formattedStartDate = mealPlanData.startDate.split(' ')[0];
-                setSelectedDate(formattedStartDate);
-            }
-        } catch (err) {
-            setError('Failed to fetch data.');
-            console.error('Failed to fetch data', err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchData();
-    }, [mealPlanId]);
-
     useEffect(() => {
         if (mealPlan) {
+            setMealPlanDays(mealPlan.MealPlanDays);
             setDates(getDateRange(mealPlan.startDate, mealPlan.endDate));
+
+            if (!selectedDate) {
+                const formattedStartDate = mealPlan.startDate.split(' ')[0];
+                setSelectedDate(formattedStartDate);
+            }
         }
     }, [mealPlan]);
-
-    useEffect(() => {
-        if (dates && dates.length > 0 && !selectedDate) {
-            setSelectedDate(dates[0].split('T')[0]);
-        }
-    }, [dates]);
 
     const getMealsForDate = (date) => {
         return mealPlanDays.filter(d => d.date.slice(0, 10) === date)
@@ -102,61 +81,44 @@ function AddMealPlanDay() {
         setSearchQuery(event.target.value);
     };
 
-    const filteredMeals = searchItems(meals, ['name'], searchQuery);
+    const filteredMeals = searchItems(meals || [], ['name'], searchQuery);
 
     const handleMealSelect = async (meal) => {
-        setIsLoading(true);
-        setError('');
-
         try {
-            const response = await fetch(`/api/meal-plans/${mealPlanId}/meals`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date: selectedDate, mealId: meal.id, mealType: editingMealType || mealType }) // Use editingMealType if set
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to add meal to the meal plan');
-            }
-
-            await fetchData(selectedDate);
+            await addMealToPlan(
+                { date: selectedDate, mealId: meal.id, mealType: editingMealType || mealType },
+                'Meal added to plan successfully!',
+                'Failed to add meal to plan. Please try again later.'
+            );
+            await refetch();
             setIsModalOpen(false);
-            setEditingMealType(''); // Reset editingMealType
+            setEditingMealType('');
         } catch (error) {
-            setError(error.message);
             console.error('Error adding meal to meal plan:', error);
-        } finally {
-            setIsLoading(false);
         }
     };
 
     const handleDeleteMeal = async () => {
-        setIsLoading(true);
-        setError('');
-
         try {
-            const response = await fetch(`/api/meal-plans/${mealPlanId}/meals/delete`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date: selectedDate, mealType: editingMealType })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete meal from the meal plan');
-            }
-
-            await fetchData(selectedDate);
+            await deleteMealFromPlan(
+                { date: selectedDate, mealType: editingMealType },
+                'Meal removed from plan successfully!',
+                'Failed to remove meal from plan. Please try again later.'
+            );
+            await refetch();
             setIsMealModalOpen(false);
             setEditingMealType('');
         } catch (error) {
-            setError(error.message);
             console.error('Error deleting meal from meal plan:', error);
-        } finally {
-            setIsLoading(false);
         }
     };
 
     const generateShoppingList = async () => {
+        if (mealPlanDays.length === 0) {
+            setAddNotification({ message: 'No meals in the plan to create a shopping list.', type: 'error' });
+            return;
+        }
+
         try {
             const response = await fetch(`/api/shopping-list/create/${mealPlanId}`);
             if (!response.ok) {
@@ -165,14 +127,16 @@ function AddMealPlanDay() {
             const shoppingListData = await response.json();
             setShoppingList(shoppingListData);
             toggleShoppingListModal();
+            setAddNotification({ message: 'Shopping list created successfully!', type: 'success' });
         } catch (error) {
+            setAddNotification({ message: 'Failed to create shopping list. Please try again later.', type: 'error' });
             alert(`Error: ${error.message}`);
         }
     };
 
     function openModal(meal) {
         setMealType(meal);
-        setEditingMealType(''); // Reset editingMealType
+        setEditingMealType('');
         toggleModal();
     }
 
@@ -183,6 +147,10 @@ function AddMealPlanDay() {
         setSelectedMeal(meal); 
         toggleMealModal();
     }
+
+    if (mealPlanLoading || mealsLoading) return <p>Loading meal plan details...</p>;
+    if (mealPlanError) return <p>Error loading meal plan: {mealPlanError}</p>;
+    if (mealsError) return <p>Error loading meals: {mealsError}</p>;
 
     if (!mealPlan || !dates) return <p>Loading meal plan details...</p>;
 
@@ -263,10 +231,6 @@ function AddMealPlanDay() {
                     <div className='bg-white w-full md:w-[395px] rounded-t-xl'>
                         {
                             selectedMeal.imageUrl && (
-                                // <img
-                                //     className='rounded-lg shadow w-full'
-                                //     src={`${window.location.origin.replace(window.location.port, '5000')}${selectedMeal.imageUrl}`}
-                                // />
                                 <>
                                     <div className={`relative h-[350px] w-full bg-center bg-cover bg-[url("${selectedMeal.imageUrl ? `${window.location.origin.replace(window.location.port, '5000')}${selectedMeal.imageUrl}` : `https://picsum.photos/300?random=${selectedMeal.id}`}")]`}>
                                         <div className='bg-gradient-to-b from-white/20 w-full h-[350px] h-full absolute top-0 z-10'></div>
@@ -279,7 +243,6 @@ function AddMealPlanDay() {
                                         <RxCross1 />
                                     </button>
                                 </>
-
                             )
                         }
 
@@ -289,13 +252,24 @@ function AddMealPlanDay() {
                                 <p className='text-sm mb-2'>By <span className='font-medium'>{selectedMeal.author || "Coffey special"}</span></p>
                                 <Heading variant="h3">Ingredients</Heading>
                                 <ul className='text-sm mb-4'>
-                                    {selectedMeal.ingredients.map(ingredient => <li>{ingredient.name} - {ingredient.quantity} {ingredient.unit} </li>)}
+                                    {selectedMeal.ingredients.map((ingredient, index) => <li key={index}>{ingredient.name} - {ingredient.quantity} {ingredient.unit} </li>)}
                                 </ul>
                                 <Button.Destructive onClick={handleDeleteMeal}>Remove from plan</Button.Destructive>
                             </div>
                         </div>
                     </div>
                 </div>
+            )}
+
+            {(addNotification || deleteNotification) && (
+                <Notification
+                    message={addNotification?.message || deleteNotification?.message}
+                    type={addNotification?.type || deleteNotification?.type}
+                    onClose={() => {
+                        setAddNotification(null);
+                        setDeleteNotification(null);
+                    }}
+                />
             )}
         </>
     );

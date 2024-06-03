@@ -1,3 +1,5 @@
+// components/meal/MealCard.jsx
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { RxPlus, RxHeartFilled } from 'react-icons/rx';

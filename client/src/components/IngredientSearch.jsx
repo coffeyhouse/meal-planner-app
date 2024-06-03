@@ -1,10 +1,14 @@
+// src/components/IngredientSearch.jsx
+
 import React, { useState, useEffect } from 'react';
 import Modal from './common/Modal';
 import Button from './common/Button';
 import { searchItems } from '../utils/search';
+import useFetch from '../hooks/useFetch';
+import Input from './common/Input';
 
 function IngredientSearch({ onIngredientSelect, onClose }) {
-    const [ingredients, setIngredients] = useState([]);
+    const { data: ingredients, loading: ingredientsLoading, error: ingredientsError } = useFetch('/api/ingredients');
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -18,14 +22,7 @@ function IngredientSearch({ onIngredientSelect, onClose }) {
     const toggleSearchModal = () => setIsSearchModalOpen(!isSearchModalOpen);
     const toggleCreateModal = () => setIsCreateModalOpen(!isCreateModalOpen);
 
-    useEffect(() => {
-        fetch('/api/ingredients')
-            .then(response => response.json())
-            .then(data => setIngredients(data))
-            .catch(error => console.error('Error fetching ingredients:', error));
-    }, []);
-
-    const results = searchItems(ingredients, ['name'], searchTerm);
+    const results = searchItems(ingredients || [], ['name'], searchTerm);
 
     const handleSearchChange = event => {
         setSearchTerm(event.target.value);
@@ -41,7 +38,6 @@ function IngredientSearch({ onIngredientSelect, onClose }) {
         });
         if (response.ok) {
             const addedIngredient = await response.json();
-            setIngredients([...ingredients, addedIngredient]);
             onIngredientSelect(addedIngredient);
             setIsCreateModalOpen(false);
             setNewIngredient({ name: '', category: '', defaultUnit: '', defaultQuantity: '' });
@@ -54,12 +50,11 @@ function IngredientSearch({ onIngredientSelect, onClose }) {
         <>
             {isSearchModalOpen && (
                 <Modal title="Search Ingredients" onClose={onClose}>
-                    <input
-                        type="text"
+                    <Input
                         placeholder="Search for ingredients..."
                         value={searchTerm}
                         onChange={handleSearchChange}
-                        className="w-full border rounded p-2 mb-4"
+                        className="w-full mb-4"
                     />
                     <div className="max-h-80 overflow-y-auto">
                         {results.map(result => (
@@ -88,64 +83,44 @@ function IngredientSearch({ onIngredientSelect, onClose }) {
 
             {isCreateModalOpen && (
                 <Modal title="Add New Ingredient" onClose={() => { toggleCreateModal(); toggleSearchModal(); }}>
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">Name</span>
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Name"
-                            className="input input-bordered"
+                    <div className='flex flex-col gap-2'>
+                        <Input
+                            label="Name"
                             value={newIngredient.name}
                             onChange={e => setNewIngredient({ ...newIngredient, name: e.target.value })}
                         />
-                    </div>
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">Category</span>
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Category"
-                            className="input input-bordered"
+
+                        <Input
+                            label="Category"
                             value={newIngredient.category}
                             onChange={e => setNewIngredient({ ...newIngredient, category: e.target.value })}
                         />
-                    </div>
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">Default Unit</span>
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Default Unit"
-                            className="input input-bordered"
+
+                        <Input
+                            label="Default unit"
                             value={newIngredient.defaultUnit}
                             onChange={e => setNewIngredient({ ...newIngredient, defaultUnit: e.target.value })}
                         />
-                    </div>
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">Default Quantity</span>
-                        </label>
-                        <input
+
+
+                        <Input
                             type="number"
-                            placeholder="Default Quantity"
-                            className="input input-bordered"
+                            label="Default quantity"
                             value={newIngredient.defaultQuantity}
                             onChange={e => setNewIngredient({ ...newIngredient, defaultQuantity: e.target.value })}
                         />
                     </div>
                     <div className="modal-action flex justify-end gap-2 mt-4">
-                        <Button className="btn bg-blue-500 text-white" onClick={handleCreateIngredient}>
+                        <Button onClick={handleCreateIngredient}>
                             Create
                         </Button>
-                        <Button className="btn bg-gray-300" onClick={() => { toggleCreateModal(); toggleSearchModal(); }}>
+                        <Button.Secondary onClick={() => { toggleCreateModal(); toggleSearchModal(); }}>
                             Cancel
-                        </Button>
+                        </Button.Secondary>
                     </div>
-                </Modal>
-            )}
+                </Modal >
+            )
+            }
         </>
     );
 }

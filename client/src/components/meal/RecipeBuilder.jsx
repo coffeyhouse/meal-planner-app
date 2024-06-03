@@ -1,4 +1,3 @@
-// RecipeBuilder.jsx
 import React, { useState, useEffect } from 'react';
 import IngredientSearch from '../IngredientSearch';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -9,6 +8,8 @@ import Card from '../common/Card';
 import CardContainer from '../common/CardContainer';
 import Modal from '../common/Modal';
 import Heading from '../common/Heading';
+import Input from '../common/Input';
+import Select from '../common/Select';
 
 const baseUnits = [
     { label: 'grams', value: 'g' },
@@ -25,7 +26,7 @@ function RecipeBuilder() {
     const { mealId } = useParams();
     const navigate = useNavigate();
     const [recipeName, setRecipeName] = useState('');
-    const [authorName, setAuthorName] = useState(''); // State for author name
+    const [authorName, setAuthorName] = useState('');
     const [ingredients, setIngredients] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentIngredient, setCurrentIngredient] = useState(null);
@@ -44,7 +45,7 @@ function RecipeBuilder() {
                 .then(response => response.json())
                 .then(data => {
                     setRecipeName(data.name);
-                    setAuthorName(data.author || ''); // Set author name
+                    setAuthorName(data.author || '');
                     setIngredients(data.ingredients.map(ing => ({
                         ...ing,
                         id: ing.id,
@@ -138,7 +139,7 @@ function RecipeBuilder() {
 
         const meal = {
             name: recipeName,
-            authorName, // Add authorName to the meal object
+            authorName,
             ingredients: simplifiedIngredients,
             imageUrl: imageURL
         };
@@ -196,42 +197,30 @@ function RecipeBuilder() {
             </PageContainer.Header>
             <PageContainer.Content>
                 <div className='flex flex-col gap-4'>
-                    <div className="flex flex-col gap-2">
-                        <Heading variant="h3">Recipe name</Heading>
-                        <input
-                            type="text"
-                            placeholder="Give it a name..."
-                            className="bg-white p-2 border"
-                            value={recipeName}
-                            onChange={(e) => setRecipeName(e.target.value)}
-                            disabled={!isEditing}
-                        />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <Heading variant="h3">Author name</Heading>
-                        <input
-                            type="text"
-                            placeholder="Enter author name..."
-                            className="bg-white p-2 border"
-                            value={authorName}
-                            onChange={(e) => setAuthorName(e.target.value)}
-                            disabled={!isEditing}
-                        />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <Heading variant="h3">Image URL</Heading>
-                        <input
-                            type="text"
-                            placeholder="Enter image URL..."
-                            className="bg-white p-2 border"
-                            value={imageURL}
-                            onChange={(e) => setImageURL(e.target.value)}
-                            disabled={!isEditing}
-                        />
-                        {isEditing && (
-                            <Button onClick={handleImageUpload}>Upload Image</Button>
-                        )}
-                    </div>
+                    <Input
+                        label="Recipe name"
+                        value={recipeName}
+                        onChange={(e) => setRecipeName(e.target.value)}
+                        placeholder="Give it a name..."
+                        disabled={!isEditing}
+                    />
+                    <Input
+                        label="Author name"
+                        value={authorName}
+                        onChange={(e) => setAuthorName(e.target.value)}
+                        placeholder="Enter author name..."
+                        disabled={!isEditing}
+                    />
+                    <Input
+                        label="Image URL"
+                        value={imageURL}
+                        onChange={(e) => setImageURL(e.target.value)}
+                        placeholder="Enter image URL..."
+                        disabled={!isEditing}
+                    />
+                    {isEditing && (
+                        <Button onClick={handleImageUpload}>Upload Image</Button>
+                    )}
                     <div>
                         <div className="flex items-center mb-2">
                             <div className="grow">
@@ -274,36 +263,27 @@ function RecipeBuilder() {
                 {addIngredients && <IngredientSearch onIngredientSelect={handleIngredientSelect} onClose={() => setAddIngredients(false)} />}
                 {isModalOpen && (
                     <Modal title={`Add Ingredient - ${currentIngredient?.name}`} onClose={toggleModal}>
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Quantity</span>
-                            </label>
-                            <input
+                        <div className='flex flex-col gap-4'>
+
+                            <Input
+                                label="Quantity"
                                 type="number"
-                                placeholder="Enter quantity"
-                                className="input input-bordered"
                                 value={quantity}
                                 onChange={(e) => setQuantity(e.target.value)}
+                                placeholder="Enter quantity"
                             />
-                        </div>
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Unit</span>
-                            </label>
-                            <select
-                                className="select select-bordered"
+
+                            <Select
+                                label="Unit"
                                 value={unit}
                                 onChange={(e) => setUnit(e.target.value)}
-                            >
-                                <option value="" disabled={!unit}>Select a unit</option>
-                                {commonUnits.map(option => (
-                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="modal-action flex justify-end gap-2 mt-4">
-                            <button className="btn bg-blue-500 text-white" disabled={!quantity || !unit} onClick={addIngredientToRecipe}>Add</button>
-                            <button className="btn bg-gray-300" onClick={toggleModal}>Cancel</button>
+                                options={commonUnits}
+                            />
+                            
+                            <div className="modal-action flex justify-end gap-2 mt-4">
+                                <Button onClick={addIngredientToRecipe} disabled={!quantity || !unit}>Add</Button>
+                                <Button.Secondary onClick={toggleModal}>Cancel</Button.Secondary>
+                            </div>
                         </div>
                     </Modal>
                 )}

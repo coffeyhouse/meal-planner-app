@@ -27,7 +27,7 @@ const router = createBrowserRouter([
         element: <MealPlanList />,
       },
       {
-        path: "plan/add",
+        path: "meal-plans/plan/add",
         element: <MealPlanForm />,
       },
       {

@@ -1,69 +1,25 @@
-import React, { useState, useEffect } from 'react';
+// src/components/mealPlan/MealPlanList.jsx
+
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Button from '../common/Button';
 import NavBar from '../common/NavBar';
 import Card from '../common/Card';
 import PageContainer from '../layout/PageContainer';
 import CardContainer from '../common/CardContainer';
 import Heading from '../common/Heading';
+import { isThisWeek, isNextWeek, formatDate } from '../../utils/date';
+import useFetch from '../../hooks/useFetch';
 
 function MealPlanList() {
-    const [mealPlans, setMealPlans] = useState([]);
-    const [thisWeekPlan, setThisWeekPlan] = useState(null);
-    const [nextWeekPlan, setNextWeekPlan] = useState(null);
-    const [previousWeeksPlans, setPreviousWeeksPlans] = useState([]);
+    const { data: mealPlans, loading, error } = useFetch('/api/meal-plans');
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetch('/api/meal-plans')
-            .then(response => response.json())
-            .then(data => {
-                const sortedData = data.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-                let tempPreviousWeeks = [];
+    const sortedMealPlans = mealPlans?.sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) || [];
+    const thisWeekPlan = sortedMealPlans.find(plan => isThisWeek(plan.startDate));
+    const nextWeekPlan = sortedMealPlans.find(plan => isNextWeek(plan.startDate));
+    const previousWeeksPlans = sortedMealPlans.filter(plan => !isThisWeek(plan.startDate) && !isNextWeek(plan.startDate)).reverse();
 
-                sortedData.forEach(plan => {
-                    if (isThisWeek(plan.startDate)) {
-                        setThisWeekPlan(plan);
-                    } else if (isNextWeek(plan.startDate)) {
-                        setNextWeekPlan(plan);
-                    } else {
-                        tempPreviousWeeks.push(plan);
-                    }
-                });
-
-                setPreviousWeeksPlans(tempPreviousWeeks.reverse());
-            })
-            .catch(err => console.error('Failed to fetch meal plans', err));
-    }, []);
-
-    function formatDate(dateString) {
-        const date = new Date(dateString.split(' ')[0]);
-        return date.toLocaleDateString('en-GB', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long'
-        });
-    }
-
-    function getWeekNumber(d) {
-        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-        return weekNo;
-    }
-
-    function isThisWeek(date) {
-        const now = new Date();
-        return getWeekNumber(now) === getWeekNumber(new Date(date.split(' ')[0]));
-    }
-
-    function isNextWeek(date) {
-        const now = new Date();
-        return getWeekNumber(now) + 1 === getWeekNumber(new Date(date.split(' ')[0]));
-    }
-
-    function getMealCounts(plan) {
+    const getMealCounts = (plan) => {
         const mealCounts = { breakfast: 0, lunch: 0, dinner: 0 };
         plan.MealPlanDays.forEach(day => {
             if (day.mealType in mealCounts) {
@@ -71,9 +27,9 @@ function MealPlanList() {
             }
         });
         return mealCounts;
-    }
+    };
 
-    function generateDescription(plan) {
+    const generateDescription = (plan) => {
         const { breakfast, lunch, dinner } = getMealCounts(plan);
         if (breakfast === 0 && lunch === 0 && dinner === 0) {
             return 'No meals added yet';
@@ -85,7 +41,7 @@ function MealPlanList() {
             return `${count} ${noun}${count !== 1 ? 's' : ''}`;
         };
         return `${pluralize(breakfast, 'breakfast')}, ${pluralize(lunch, 'lunch')}, and ${pluralize(dinner, 'dinner')}.`;
-    }
+    };
 
     const handlePlanClick = (planId) => {
         navigate(`/plan/${planId}/options`);

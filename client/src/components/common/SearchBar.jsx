@@ -1,12 +1,12 @@
 import React from 'react';
 import { PiSlidersHorizontal } from "react-icons/pi";
+import Input from './Input';
 
 function SearchBar({ searchQuery, handleSearchChange }) {
     return (
         <div className='flex gap-2 mb-4 w-full'>
-            <input
-                type="text"
-                className='px-3 py-2 border border-black/20 rounded-xl w-full grow'
+            <Input
+                className='w-full grow'
                 placeholder='Search...'
                 value={searchQuery}
                 onChange={handleSearchChange}

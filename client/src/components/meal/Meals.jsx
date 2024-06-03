@@ -1,28 +1,26 @@
-import React, { useState, useEffect } from 'react';
+// src/components/meal/Meals.jsx
+
+import React, { useState } from 'react';
 import NavBar from '../common/NavBar';
 import PageContainer from '../layout/PageContainer';
 import { searchItems } from '../../utils/search';
 import Modal from '../common/Modal';
 import MealGrid from './MealGrid';
-import SearchBar from '../common/SearchBar'; // Import the new SearchBar component
+import SearchBar from '../common/SearchBar';
+import useFetch from '../../hooks/useFetch';
+import LoadingSpinner from '../common/LoadingSpinner';
+import ErrorMessage from '../common/ErrorMessage';
 
 function Meals() {
-    const [meals, setMeals] = useState([]);
+    const { data: meals, loading, error } = useFetch('/api/meals');
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    useEffect(() => {
-        fetch('/api/meals')
-            .then(response => response.json())
-            .then(data => setMeals(data))
-            .catch(error => console.error('Error fetching meals:', error));
-    }, []);
 
     const handleSearchChange = (event) => {
         setSearchQuery(event.target.value);
     };
 
-    const filteredMeals = searchItems(meals, ['name'], searchQuery);
+    const filteredMeals = searchItems(meals || [], ['name'], searchQuery);
 
     return (
         <PageContainer>
@@ -31,7 +29,9 @@ function Meals() {
                 <SearchBar searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
             </PageContainer.Header>
             <PageContainer.Content>
-                <MealGrid meals={filteredMeals} />
+                {loading && <LoadingSpinner />}
+                {error && <ErrorMessage message={error} />}
+                {!loading && !error && <MealGrid meals={filteredMeals} />}
             </PageContainer.Content>
             {isModalOpen && (
                 <Modal title="Meal filter" onClose={() => setIsModalOpen(false)}>

@@ -1,0 +1,2961 @@
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\main.jsx ====================
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
+import Root from './routes/Root';
+import ErrorPage from './routes/ErrorPage';
+import RecipeBuilder from './components/meal/RecipeBuilder';
+import Meals from './components/meal/Meals';
+import MealPlanList from './components/mealPlan/MealPlanList';
+import MealPlanForm from './components/mealPlan/MealPlanForm';
+import AddMealPlanDay from './components/mealPlan/AddMealPlanDay';
+import HomePage from './components/HomePage';
+import MealPlanOptions from './components/mealPlan/MealPlanOptions';
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Root />,
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        path: "/",
+        element: <HomePage />,
+      },
+      {
+        path: "meal-plans",
+        element: <MealPlanList />,
+      },
+      {
+        path: "meal-plans/plan/add",
+        element: <MealPlanForm />,
+      },
+      {
+        path: "plan/:mealPlanId/options",
+        element: <MealPlanOptions />,
+      },
+      {
+        path: "plan/:mealPlanId/add-meals",
+        element: <AddMealPlanDay />,
+      },
+      {
+        path: "recipe-builder",
+        element: <RecipeBuilder />,
+      },
+      {
+        path: "recipe-builder/:mealId",
+        element: <RecipeBuilder />,
+      },
+      {
+        path: "meals",
+        element: <Meals />,
+      }
+    ]
+  },
+]);
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>
+);
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\HomePage.jsx ====================
+
+// src/components/HomePage.jsx
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import NavBar from './common/NavBar';
+import PageContainer from './layout/PageContainer';
+import MealCard from './meal/MealCard';
+import Heading from './common/Heading';
+import { isThisWeek, isNextWeek, formatDate } from '../utils/date';
+import useFetch from '../hooks/useFetch';
+
+function HomePage() {
+    const { data: meals, loading: mealsLoading, error: mealsError } = useFetch('/api/meals');
+    const { data: mealPlans, loading: mealPlansLoading, error: mealPlansError } = useFetch('/api/meal-plans');
+
+    const getMealPlans = (plans) => {
+        let thisWeekPlan = null;
+        let nextWeekPlan = null;
+
+        if (plans) {
+            const sortedData = plans.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+            sortedData.forEach(plan => {
+                if (isThisWeek(plan.startDate)) {
+                    thisWeekPlan = plan;
+                } else if (isNextWeek(plan.startDate)) {
+                    nextWeekPlan = plan;
+                }
+            });
+        }
+        return { thisWeekPlan, nextWeekPlan };
+    };
+
+    const { thisWeekPlan, nextWeekPlan } = getMealPlans(mealPlans);
+
+    const renderMeals = () => {
+        return (meals || []).slice(0, 4).map((meal) => (
+            <MealCard key={meal.id} meal={meal} variant="small" />
+        ));
+    };
+
+    return (
+        <PageContainer>
+            <PageContainer.Header>
+                <NavBar title="Welcome to Coffey Cuisine" />
+            </PageContainer.Header>
+            <PageContainer.Content>
+                <div className="mt-8 flex flex-col gap-4">
+                    <div className='flex gap-2 justify-between items-center'>
+                        <Heading variant="h3">Meal plans</Heading>
+                        <Link to="/meal-plans" className="text-[#FA691A] text-sm font-bold">See all</Link>
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 pb-8" style={{margin: "0 -16px"}}>
+                        {mealPlansLoading ? <p>Loading meal plans...</p> : mealPlansError ? <p>Error loading meal plans: {mealPlansError}</p> : (
+                            <>
+                                {thisWeekPlan ? (
+                                    <Link to={`/plan/${thisWeekPlan.id}/add-meals`} className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
+                                        <p className='font-bold text-xl mt-[50px]'>This week</p>
+                                        <div className='flex gap-1 items-center'>
+                                            <p className='text-xs text-white/80 font-medium'>{formatDate(thisWeekPlan.startDate)} - {formatDate(thisWeekPlan.endDate)}</p>
+                                        </div>
+                                    </Link>
+                                ) : (
+                                    <Link className='rounded-2xl bg-[#70B9BE] p-3 flex flex-col gap-2 shadow-lg shadow-gray-200 text-white min-w-[66%]'>
+                                        <p className='font-bold text-xl mt-[50px]'>This week</p>
+                                        <div className='flex gap-1 items-center'>
+                                            <p className='text-xs text-white/80 font-medium'>Add a plan</p>
+                                        </div>
+                                    </Link>
+                                )}
+                                {nextWeekPlan ? (
+                                    <Link to={`/plan/${nextWeekPlan.id}/options`} className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
+                                        <Heading variant="h3">Next week</Heading>
+                                        <div className='flex gap-1 items-center'>
+                                            <p className='text-xs text-white/80 font-medium'>{formatDate(nextWeekPlan.startDate)} - {formatDate(nextWeekPlan.endDate)}</p>
+                                        </div>
+                                    </Link>
+                                ) : (
+                                    <Link className='rounded-2xl bg-contain bg-center bg-no-repeat p-4 flex flex-col justify-end gap-2 shadow-lg shadow-gray-200 text-white min-w-[265px] h-[170px] bg-[url("/calendar-bg.png")]'>
+                                        <p className='font-bold text-xl mt-[50px]'>Next week</p>
+                                        <div className='flex gap-1 items-center'>
+                                            <p className='text-xs text-white/80 font-medium'>Add a plan</p>
+                                        </div>
+                                    </Link>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+                <div className="flex flex-col gap-4">
+                    <div className='flex gap-2 justify-between items-center'>
+                        <Heading variant="h3">Our favourite meals</Heading>
+                        <Link to="/meals" className="text-[#FA691A] text-sm font-bold">See all</Link>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        {mealsLoading ? <p>Loading meals...</p> : mealsError ? <p>Error loading meals: {mealsError}</p> : renderMeals()}
+                    </div>
+                </div>
+            </PageContainer.Content>
+        </PageContainer>
+    );
+}
+
+export default HomePage;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\IngredientSearch.jsx ====================
+
+// src/components/IngredientSearch.jsx
+
+import React, { useState, useEffect } from 'react';
+import Modal from './common/Modal';
+import Button from './common/Button';
+import { searchItems } from '../utils/search';
+import useFetch from '../hooks/useFetch';
+import Input from './common/Input';
+
+function IngredientSearch({ onIngredientSelect, onClose }) {
+    const { data: ingredients, loading: ingredientsLoading, error: ingredientsError } = useFetch('/api/ingredients');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isSearchModalOpen, setIsSearchModalOpen] = useState(true);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [newIngredient, setNewIngredient] = useState({
+        name: '',
+        category: '',
+        defaultUnit: '',
+        defaultQuantity: ''
+    });
+
+    const toggleSearchModal = () => setIsSearchModalOpen(!isSearchModalOpen);
+    const toggleCreateModal = () => setIsCreateModalOpen(!isCreateModalOpen);
+
+    const results = searchItems(ingredients || [], ['name'], searchTerm);
+
+    const handleSearchChange = event => {
+        setSearchTerm(event.target.value);
+    };
+
+    const handleCreateIngredient = async () => {
+        const response = await fetch('/api/ingredients', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newIngredient)
+        });
+        if (response.ok) {
+            const addedIngredient = await response.json();
+            onIngredientSelect(addedIngredient);
+            setIsCreateModalOpen(false);
+            setNewIngredient({ name: '', category: '', defaultUnit: '', defaultQuantity: '' });
+        } else {
+            console.error('Failed to create ingredient');
+        }
+    };
+
+    return (
+        <>
+            {isSearchModalOpen && (
+                <Modal title="Search Ingredients" onClose={onClose}>
+                    <Input
+                        placeholder="Search for ingredients..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        className="w-full mb-4"
+                    />
+                    <div className="max-h-80 overflow-y-auto">
+                        {results.map(result => (
+                            <div key={result.id} className="flex justify-between items-center py-2">
+                                <div>
+                                    <p className="font-semibold">{result.name}</p>
+                                    <p className="text-sm text-gray-600">{result.category}</p>
+                                </div>
+                                <Button onClick={() => onIngredientSelect(result)}>
+                                    Add
+                                </Button>
+                            </div>
+                        ))}
+                        <div className="flex justify-between items-center py-2">
+                            <div>
+                                <p className="font-semibold">Add new</p>
+                                <p className="text-sm text-gray-600">Create a new ingredient</p>
+                            </div>
+                            <Button onClick={() => { toggleSearchModal(); toggleCreateModal(); }}>
+                                Add new
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
+
+            {isCreateModalOpen && (
+                <Modal title="Add New Ingredient" onClose={() => { toggleCreateModal(); toggleSearchModal(); }}>
+                    <div className='flex flex-col gap-2'>
+                        <Input
+                            label="Name"
+                            value={newIngredient.name}
+                            onChange={e => setNewIngredient({ ...newIngredient, name: e.target.value })}
+                        />
+
+                        <Input
+                            label="Category"
+                            value={newIngredient.category}
+                            onChange={e => setNewIngredient({ ...newIngredient, category: e.target.value })}
+                        />
+
+                        <Input
+                            label="Default unit"
+                            value={newIngredient.defaultUnit}
+                            onChange={e => setNewIngredient({ ...newIngredient, defaultUnit: e.target.value })}
+                        />
+
+
+                        <Input
+                            type="number"
+                            label="Default quantity"
+                            value={newIngredient.defaultQuantity}
+                            onChange={e => setNewIngredient({ ...newIngredient, defaultQuantity: e.target.value })}
+                        />
+                    </div>
+                    <div className="modal-action flex justify-end gap-2 mt-4">
+                        <Button onClick={handleCreateIngredient}>
+                            Create
+                        </Button>
+                        <Button.Secondary onClick={() => { toggleCreateModal(); toggleSearchModal(); }}>
+                            Cancel
+                        </Button.Secondary>
+                    </div>
+                </Modal >
+            )
+            }
+        </>
+    );
+}
+
+export default IngredientSearch;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Button.jsx ====================
+
+// src/components/common/Button.jsx
+
+import React from "react";
+
+function Button({ children, className = '', ...rest }) {
+    return (
+        <button
+            className={`px-4 py-2 font-semibold text-white text-sm disabled:bg-[#FA691A]/20 bg-[#70B9BE] rounded-xl ${className}`}
+            {...rest}
+        >
+            {children}
+        </button>
+    );
+}
+
+Button.Secondary = function Secondary({ children, className = '', ...rest }) {
+    return (
+        <button
+            className={`px-4 py-2 font-semibold text-sm disabled:bg-[#FA691A]/20 border border-[#70B9BE] rounded-xl text-[#70B9BE] ${className}`}
+            {...rest}
+        >
+            {children}
+        </button>
+    );
+};
+
+Button.Destructive = function Destructive({ children, className = '', ...rest }) {
+    return (
+        <button
+            className={`px-4 py-2 font-semibold text-sm bg-red-500 border border-red-500 rounded-xl text-white ${className}`}
+            {...rest}
+        >
+            {children}
+        </button>
+    );
+};
+
+export default Button;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Card.jsx ====================
+
+import React from "react";
+import { Link } from "react-router-dom";
+import { RxPencil2, RxEyeOpen, RxPlusCircled, RxTrash } from "react-icons/rx";
+
+const buttonIcons = {
+    view: <RxEyeOpen className="text-[#FA691A] mr-2" />,
+    add: <RxPlusCircled className="text-[#FA691A] mr-2" />,
+    edit: <RxPencil2 className="text-[#FA691A] mr-2" />,
+    remove: <RxTrash className="text-red-600 mr-2" />
+};
+
+function Card({ title, description, image, buttonType, buttonLink, buttonClick = () => { } }) {
+    const renderButton = () => {
+        if (!buttonType || !buttonIcons[buttonType]) return null;
+
+        if (buttonLink && buttonType !== "view" && buttonType !== "add") {
+            return <button onClick={buttonClick} className="flex items-center">{buttonIcons[buttonType]}</button>;
+        }
+
+        return <span className="flex items-center">{buttonIcons[buttonType]}</span>;
+    };
+
+    const cardContent = (
+        <div className="flex bg-white rounded p-2 gap-3 items-center shadow">
+            {image && image !== "placeholder" && (
+                <div
+                    className={`h-[60px] w-[20%] 
+                        bg-cover bg-center bg-no-repeat 
+                        bg-[url("${image}")] rounded`}
+                />
+            )}
+
+            {image === "placeholder" && (
+                <div className="bg-black/20 rounded h-[60px] w-[20%]" />
+            )}
+
+            <div className="flex flex-col items-start grow gap-1">
+                {title && <p className="font-bold text-black/90 text-sm">{title}</p>}
+                {description && <p className="text-black/60 text-sm">{description}</p>}
+            </div>
+
+            <div>{renderButton()}</div>
+        </div>
+    );
+
+    if (buttonLink) {
+        return <Link to={buttonLink} className="block">{cardContent}</Link>;
+    }
+
+    if (buttonClick) {
+        return <div onClick={buttonClick} className="cursor-pointer">{cardContent}</div>;
+    }
+
+    return cardContent;
+}
+
+export default Card;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\CardContainer.jsx ====================
+
+import React from "react"
+
+function CardContainer({children}) {
+    return (
+        <div className="flex flex-col gap-2">
+            {children}
+        </div>
+    )
+}
+
+export default CardContainer;
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\ErrorMessage.jsx ====================
+
+// src/components/common/ErrorMessage.jsx
+
+import React from 'react';
+
+function ErrorMessage({ message }) {
+    return (
+        <div className="text-red-600 text-center">
+            <p>Error: {message}</p>
+        </div>
+    );
+}
+
+export default ErrorMessage;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Heading.jsx ====================
+
+import React from "react";
+
+function Heading({ variant, children }) {
+    const variants = {
+        h1: "text-3xl font-bold",
+        h2: "text-2xl font-bold",
+        h3: "font-bold text-black/60",
+        h4: "font-bold text-sm",
+        h5: "text-base font-medium",
+        h6: "text-sm font-medium",
+    };
+
+    return <p className={variants[variant]}>{children}</p>;
+}
+
+export default Heading;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Input.jsx ====================
+
+// src/components/common/Input.jsx
+
+import React from 'react';
+
+function Input({ label, type = 'text', value, onChange, placeholder, className = '', required = false, disabled = false }) {
+    return (
+        <div className={`flex flex-col gap-1 ${className}`}>
+            {label && <label className="font-semibold text-sm">{label}</label>}
+            <input
+                type={type}
+                value={value}
+                onChange={onChange}
+                placeholder={placeholder}
+                className="bg-white p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#70B9BE] disabled:bg-gray-200"
+                required={required}
+                disabled={disabled}
+            />
+        </div>
+    );
+}
+
+export default Input;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\LoadingSpinner.jsx ====================
+
+// src/components/common/LoadingSpinner.jsx
+
+import React from 'react';
+
+function LoadingSpinner() {
+    return (
+        <div className="flex justify-center items-center h-full">
+            <svg className="animate-spin h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+        </div>
+    );
+}
+
+export default LoadingSpinner;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Modal.jsx ====================
+
+import React from "react";
+import { RxCross1 } from "react-icons/rx";
+
+function Modal({ title = "Modal title", onClose, children }) {
+    return (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm"></div>
+            <div className="bg-[#F5F5F5] rounded-lg w-[95%] max-w-lg shadow-lg relative z-10 h-[90%] flex flex-col">
+                <div className="flex justify-between items-center border-b pb-3 pt-6 pr-6 pl-6">
+                    <h3 className="text-lg font-semibold">{title}</h3>
+                    <button 
+                        onClick={onClose} 
+                        aria-label="Close modal"
+                        className="text-xl"
+                    >
+                        <RxCross1 />
+                    </button>
+                </div>
+                <div className="mt-4 overflow-auto px-6 pt-3 pb-6">
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default Modal;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\NavBar.jsx ====================
+
+import React from "react";
+import { RxChevronLeft } from "react-icons/rx";
+import { useNavigate, useLocation } from "react-router-dom";
+
+function NavBar({ title }) {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const handleBack = () => {
+        if (window.history.length > 2) {
+            navigate(-1); // Go back one step in history
+        }
+    };
+
+    // Do not show back button on the homepage
+    const isHomePage = location.pathname === "/";
+
+    return (
+        <div className='pt-6 pb-2 relative'>
+            {
+                !isHomePage && window.history.length > 2 && (
+                    <button
+                        onClick={handleBack}
+                        className='absolute font-bold left-0 top-3 h-[45px] w-[45px] flex items-center justify-center'
+                    >
+                        <RxChevronLeft />
+                    </button>
+                )
+            }
+
+            <p className='text-center font-bold'>{title}</p>
+        </div>
+    );
+}
+
+export default NavBar;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Notification.jsx ====================
+
+// src/components/common/Notification.jsx
+
+import React, { useEffect, useState } from 'react';
+
+function Notification({ message, type = 'info', onClose }) {
+    const [visible, setVisible] = useState(true);
+
+    const typeStyles = {
+        info: 'bg-blue-500 text-white',
+        success: 'bg-green-500 text-white',
+        error: 'bg-red-500 text-white',
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => setVisible(false), 2000);
+        const removeNotificationTimer = setTimeout(onClose, 2500); // Slightly longer to ensure fade-out completes
+
+        return () => {
+            clearTimeout(timer);
+            clearTimeout(removeNotificationTimer);
+        };
+    }, [onClose]);
+
+    return (
+        <div
+            className={`flex fixed bottom-4 right-4 p-4 rounded shadow-lg transition-opacity duration-500 ${typeStyles[type]} ${visible ? 'opacity-100' : 'opacity-0'}`}
+        >
+            <p>{message}</p>
+            <button onClick={onClose} className="ml-4 font-bold">X</button>
+        </div>
+    );
+}
+
+export default Notification;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\SearchBar.jsx ====================
+
+import React from 'react';
+import { PiSlidersHorizontal } from "react-icons/pi";
+import Input from './Input';
+
+function SearchBar({ searchQuery, handleSearchChange }) {
+    return (
+        <div className='flex gap-2 mb-4 w-full'>
+            <Input
+                className='w-full grow'
+                placeholder='Search...'
+                value={searchQuery}
+                onChange={handleSearchChange}
+            />
+            <button className='bg-[#70B9BE] rounded-xl px-3'>
+                <PiSlidersHorizontal className='text-lg text-white' />
+            </button>
+        </div>
+    );
+}
+
+export default SearchBar;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Select.jsx ====================
+
+// src/components/common/Select.jsx
+
+import React from 'react';
+
+function Select({ label, value, onChange, options, className = '', required = false, disabled = false }) {
+    return (
+        <div className={`flex flex-col gap-1 ${className}`}>
+            {label && <label className="font-semibold text-sm">{label}</label>}
+            <select
+                value={value}
+                onChange={onChange}
+                className="bg-white p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#70B9BE] disabled:bg-gray-200"
+                required={required}
+                disabled={disabled}
+            >
+                {options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                        {option.label}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+}
+
+export default Select;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\common\ShoppingList.jsx ====================
+
+// src/components/common/ShoppingList.jsx
+
+import React, { useState } from "react";
+import Heading from "./Heading";
+import { RxChevronDown, RxChevronUp } from 'react-icons/rx';
+
+function ShoppingList({ items, onClose }) {
+    const [expandedItems, setExpandedItems] = useState({});
+
+    const toggleExpand = (id) => {
+        setExpandedItems(prevState => ({
+            ...prevState,
+            [id]: !prevState[id]
+        }));
+    };
+
+    const categorizedItems = items.reduce((acc, item) => {
+        const category = item.Ingredient.category || "Uncategorized";
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(item);
+        return acc;
+    }, {});
+
+    return (
+        <div>
+            {Object.keys(categorizedItems).map(category => (
+                <div key={category}>
+                    <Heading variant="h3" className="mt-4">{category}</Heading>
+                    <ul className="list-disc pl-5">
+                        {categorizedItems[category].map(item => (
+                            <li key={item.ingredientId} className="mb-2">
+                                <div className="flex items-center justify-between">
+                                    <span>
+                                        {item.Ingredient.name} - {item.quantityNeeded} {item.unit || item.Ingredient.defaultUnit || ''}
+                                    </span>
+                                    <button onClick={() => toggleExpand(item.ingredientId)} className="flex items-center">
+                                        <span>{item.meals.length} meal{item.meals.length > 1 ? 's' : ''}</span>
+                                        {expandedItems[item.ingredientId] ? <RxChevronUp /> : <RxChevronDown />}
+                                    </button>
+                                </div>
+                                {expandedItems[item.ingredientId] && (
+                                    <ul className="list-disc pl-5 text-gray-600 text-sm">
+                                        {item.meals.map((meal, index) => (
+                                            <li key={index}>
+                                                {meal.name}: {meal.quantity} {item.unit}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ))}
+            <div className="flex justify-end mt-4">
+                <button onClick={onClose} className="px-4 py-2 rounded text bg-[#FA691A] font-semibold text-white text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    );
+}
+
+export default ShoppingList;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\layout\PageContainer.jsx ====================
+
+import React from "react";
+
+function PageContainer({ children }) {
+    return (
+        <div className="flex flex-col max-h-screen h-full gap-4 overflow-hidden">
+            {children}
+        </div>
+    );
+}
+
+// Header subcomponent
+PageContainer.Header = function Header({ children }) {
+    return (
+        <div className="w-full flex flex-col gap-4 px-4">
+            {children}
+        </div>
+    );
+};
+
+// Content subcomponent
+PageContainer.Content = function Content({ children }) {
+    return (
+        // 'overflow-auto' allows this div to scroll independently of the Header
+        <div className="grow overflow-auto px-4 pb-[150px]">
+            {children}
+        </div>
+    );
+};
+
+export default PageContainer;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\layout\Section.jsx ====================
+
+// src/components/layout/Section.jsx
+
+import React from 'react';
+
+function Section({ title, children, className = '' }) {
+    return (
+        <section className={`py-4 ${className}`}>
+            {title && <h2 className="text-xl font-bold mb-4">{title}</h2>}
+            {children}
+        </section>
+    );
+}
+
+export default Section;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\meal\MealCard.jsx ====================
+
+// components/meal/MealCard.jsx
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { RxPlus, RxHeartFilled } from 'react-icons/rx';
+
+function getRandomColor(name) {
+    const colors = ['#FFB6C1', '#FFD700', '#ADFF2F', '#20B2AA', '#87CEFA', '#FF69B4', '#CD5C5C', '#FFA500', '#DA70D6', '#7B68EE'];
+    const hash = Array.from(name).reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+    return colors[hash % colors.length];
+}
+
+function MealCard({ meal, action, onClick }) {
+    const authorName = meal.author || 'Coffey special  ';
+    const authorImage = meal.authorImage || '';
+    const authorColor = getRandomColor(authorName);
+
+    if (action === "add") {
+        return (
+            <div className='rounded-2xl bg-white p-2 flex gap-3 shadow-lg shadow-gray-200 items-center w-full' onClick={onClick}>
+                <div className={`flex p-2 items-start justify-end h-[70px] w-[85px] min-w-[85px] 
+                    bg-cover bg-center bg-no-repeat 
+                    bg-[url("${meal.imageUrl ? `${window.location.origin.replace(window.location.port, '5000')}${meal.imageUrl}` : `https://picsum.photos/300?random=${meal.id}`}")] rounded-2xl`}>
+                </div>
+                <div className='flex flex-col gap-1 grow'>
+                    <p className='font-bold text-sm'>{meal.name}</p>
+                    <div className='flex gap-1 items-center'>
+                        {authorImage ? (
+                            <div className={`h-[20px] w-[20px] rounded-full bg-cover bg-center bg-no-repeat 
+                            bg-[url("${authorImage}")]`} alt={authorName}> </div>
+                        ) : (
+                            <div className={`h-[20px] w-[20px] rounded-full bg-[${authorColor}]/50`}></div>
+                        )}
+                        <p className='text-xs text-black/30 font-medium'>{authorName}</p>
+                    </div>
+                </div>
+                <button className='bg-[#353535] text-white rounded-lg w-6 h-6 flex items-center justify-center text-sm mx-2 min-w-6'><RxPlus /></button>
+            </div>
+        );
+    }
+
+    return (
+        <Link to={`/recipe-builder/${meal.id}`} className='rounded-2xl bg-white p-3 flex flex-col gap-2 shadow-lg shadow-gray-200 w-full' onClick={onClick}>
+            <div className={`flex p-2 items-start justify-end h-[100px] w-[100%] 
+                    bg-cover bg-center bg-no-repeat 
+                    bg-[url("${meal.imageUrl ? `${window.location.origin.replace(window.location.port, '5000')}${meal.imageUrl}` : `https://picsum.photos/300?random=${meal.id}`}")] rounded-2xl`}>
+                <div className='bg-white p-1 rounded-lg text-[#FA691A]'><RxHeartFilled /></div>
+            </div>
+            <p className='font-bold text-sm'>{meal.name}</p>
+            <div className='flex gap-1 items-center'>
+                {authorImage ? (
+                    <div className={`h-[20px] w-[20px] rounded-full bg-cover bg-center bg-no-repeat 
+                    bg-[url("${authorImage}")]`} alt={authorName}> </div>
+                ) : (
+                    <div className={`h-[20px] w-[20px] rounded-full bg-[${authorColor}]/50`}></div>
+                )}
+                <p className='text-xs text-black/30 font-medium'>{authorName}</p>
+            </div>
+        </Link>
+    );
+}
+
+export default MealCard;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\meal\MealGrid.jsx ====================
+
+// components/meal/MealGrid.jsx
+
+import React from 'react';
+import MealCard from './MealCard';
+import { Link } from 'react-router-dom';
+import { RxPlus } from 'react-icons/rx';
+
+function MealGrid({ meals, onMealSelect }) {
+    const action = onMealSelect ? "add" : "link";
+
+    return (
+        <div className={`grid ${action === "add" ? "" : "grid-cols-2"} gap-4`}>
+            {meals.map(meal => (
+                <div
+                    key={meal.id}
+                    onClick={() => onMealSelect && onMealSelect(meal)}
+                    className='flex min-w-full'
+                >
+                    <MealCard meal={meal} action={action} />
+                </div>
+            ))}
+            {
+                action === "add" ? (
+                    <Link className='rounded-2xl bg-white p-2 flex gap-3 shadow-lg shadow-gray-200 items-center w-full' to="/recipe-builder">
+                        <div className={`flex p-2 items-start justify-end h-[70px] w-[85px] min-w-[85px] 
+                    bg-cover bg-center bg-no-repeat 
+                    bg-[url("https://pbs.twimg.com/media/CHM5quRXIAAV8H7.png")] rounded-2xl`}>
+                        </div>
+                        <div className='flex flex-col gap-1 grow'>
+                            <p className='font-bold text-sm'>Add a meal</p>
+                            <div className='flex gap-1 items-center'>
+                                <div className={`h-[20px] w-[20px] rounded-full bg-black/10`}></div>
+                                <p className='text-xs text-black/30 font-medium'>Make it tasty</p>
+                            </div>
+                        </div>
+                        <button className='bg-[#353535] text-white rounded-lg w-6 h-6 flex items-center justify-center text-sm mx-2 min-w-6'><RxPlus /></button>
+                    </Link>
+                ) : (
+                    <Link to="/recipe-builder" className='rounded-2xl bg-white p-3 flex flex-col gap-2 shadow-lg shadow-gray-200'>
+                    <div className={`flex p-2 items-start justify-end h-[100px] w-[100%] 
+                        bg-cover bg-center bg-no-repeat 
+                        bg-[url("https://pbs.twimg.com/media/CHM5quRXIAAV8H7.png")] rounded-2xl`}>
+                    </div>
+                    <p className='font-bold text-sm'>Add a meal</p>
+                    <div className='flex gap-1 items-center'>
+                        <div className={`h-[20px] w-[20px] rounded-full bg-black/10`}></div>
+                        <p className='text-xs text-black/30 font-medium'>Make it tasty</p>
+                    </div>
+                </Link>
+                )
+            }
+           
+        </div>
+    );
+}
+
+export default MealGrid;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\meal\Meals.jsx ====================
+
+// src/components/meal/Meals.jsx
+
+import React, { useState } from 'react';
+import NavBar from '../common/NavBar';
+import PageContainer from '../layout/PageContainer';
+import { searchItems } from '../../utils/search';
+import Modal from '../common/Modal';
+import MealGrid from './MealGrid';
+import SearchBar from '../common/SearchBar';
+import useFetch from '../../hooks/useFetch';
+import LoadingSpinner from '../common/LoadingSpinner';
+import ErrorMessage from '../common/ErrorMessage';
+
+function Meals() {
+    const { data: meals, loading, error } = useFetch('/api/meals');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleSearchChange = (event) => {
+        setSearchQuery(event.target.value);
+    };
+
+    const filteredMeals = searchItems(meals || [], ['name'], searchQuery);
+
+    return (
+        <PageContainer>
+            <PageContainer.Header>
+                <NavBar title="Meals" />
+                <SearchBar searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
+            </PageContainer.Header>
+            <PageContainer.Content>
+                {loading && <LoadingSpinner />}
+                {error && <ErrorMessage message={error} />}
+                {!loading && !error && <MealGrid meals={filteredMeals} />}
+            </PageContainer.Content>
+            {isModalOpen && (
+                <Modal title="Meal filter" onClose={() => setIsModalOpen(false)}>
+                    <p>There'll be some filters here of some sort.</p>
+                </Modal>
+            )}
+        </PageContainer>
+    );
+}
+
+export default Meals;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\meal\RecipeBuilder.jsx ====================
+
+import React, { useState, useEffect } from 'react';
+import IngredientSearch from '../IngredientSearch';
+import { useParams, useNavigate } from 'react-router-dom';
+import Button from '../common/Button';
+import NavBar from '../common/NavBar';
+import PageContainer from '../layout/PageContainer';
+import Card from '../common/Card';
+import CardContainer from '../common/CardContainer';
+import Modal from '../common/Modal';
+import Heading from '../common/Heading';
+import Input from '../common/Input';
+import Select from '../common/Select';
+
+const baseUnits = [
+    { label: 'grams', value: 'g' },
+    { label: 'kilograms', value: 'kg' },
+    { label: 'liters', value: 'l' },
+    { label: 'milliliters', value: 'ml' },
+    { label: 'cups', value: 'cups' },
+    { label: 'tablespoons', value: 'tbsp' },
+    { label: 'teaspoons', value: 'tsp' },
+    { label: 'pieces', value: 'pcs' }
+];
+
+function RecipeBuilder() {
+    const { mealId } = useParams();
+    const navigate = useNavigate();
+    const [recipeName, setRecipeName] = useState('');
+    const [authorName, setAuthorName] = useState('');
+    const [ingredients, setIngredients] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentIngredient, setCurrentIngredient] = useState(null);
+    const [quantity, setQuantity] = useState('');
+    const [unit, setUnit] = useState('');
+    const [addIngredients, setAddIngredients] = useState(false);
+    const [commonUnits, setCommonUnits] = useState([...baseUnits]);
+    const [isEditing, setIsEditing] = useState(true);
+    const [imageURL, setImageURL] = useState('');
+
+    const toggleModal = () => setIsModalOpen(!isModalOpen);
+
+    useEffect(() => {
+        if (mealId) {
+            fetch(`/api/meals/${mealId}`)
+                .then(response => response.json())
+                .then(data => {
+                    setRecipeName(data.name);
+                    setAuthorName(data.author || '');
+                    setIngredients(data.ingredients.map(ing => ({
+                        ...ing,
+                        id: ing.id,
+                        name: ing.name,
+                        quantity: ing.quantity.toString(),
+                        unit: ing.unit
+                    })));
+                    setImageURL(data.imageUrl || '');
+                    setIsEditing(false);
+                })
+                .catch(error => console.error('Error fetching meal details:', error));
+        }
+    }, [mealId]);
+
+    useEffect(() => {
+        if (!mealId) {
+            const savedMealData = localStorage.getItem('currentMeal');
+            if (savedMealData) {
+                const { recipeName, authorName, ingredients, imageURL } = JSON.parse(savedMealData);
+                if (recipeName || ingredients.length > 0) {
+                    if (window.confirm("Do you want to continue with your previous meal?")) {
+                        setRecipeName(recipeName);
+                        setAuthorName(authorName);
+                        setIngredients(ingredients);
+                        setImageURL(imageURL);
+                        localStorage.removeItem('currentMeal');
+                    } else {
+                        localStorage.removeItem('currentMeal');
+                    }
+                }
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!mealId) {
+            const mealData = {
+                recipeName,
+                authorName,
+                ingredients,
+                imageURL
+            };
+            localStorage.setItem('currentMeal', JSON.stringify(mealData));
+        }
+    }, [recipeName, authorName, ingredients, imageURL]);
+
+    const handleIngredientSelect = (ingredient) => {
+        setCurrentIngredient(ingredient);
+        setIsModalOpen(true);
+
+        let updatedUnits = [...baseUnits];
+
+        if (ingredient.defaultUnit && ingredient.defaultUnit.trim() !== '' && !baseUnits.some(u => u.value === ingredient.defaultUnit)) {
+            updatedUnits = [{ label: ingredient.defaultUnit, value: ingredient.defaultUnit }, ...updatedUnits];
+        }
+
+        setCommonUnits(updatedUnits);
+        setUnit(ingredient.defaultUnit && ingredient.defaultUnit.trim() !== '' ? ingredient.defaultUnit : '');
+    };
+
+    const addIngredientToRecipe = () => {
+        if (quantity && unit) {
+            const extendedIngredient = {
+                ...currentIngredient,
+                quantity,
+                unit
+            };
+            setIngredients(prevIngredients => [...prevIngredients, extendedIngredient]);
+        }
+        setIsModalOpen(false);
+        resetIngredientForm();
+        setAddIngredients(false);
+    };
+
+    const resetIngredientForm = () => {
+        setQuantity('');
+        setUnit('');
+        setCurrentIngredient(null);
+    };
+
+    const removeIngredient = (id) => {
+        setIngredients(prevIngredients => prevIngredients.filter(item => item.id !== id));
+    };
+
+    const handleAddMeal = () => {
+        const simplifiedIngredients = ingredients.map(ingredient => ({
+            id: ingredient.id,
+            unit: ingredient.unit,
+            quantity: parseInt(ingredient.quantity)
+        }));
+
+        const meal = {
+            name: recipeName,
+            authorName,
+            ingredients: simplifiedIngredients,
+            imageUrl: imageURL
+        };
+
+        const url = mealId ? `/api/meals/${mealId}` : '/api/meals';
+        const method = mealId ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(meal)
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert(`Meal successfully ${mealId ? 'updated' : 'added'}!`);
+                localStorage.removeItem('currentMeal');
+                navigate('/meals');
+            })
+            .catch(error => {
+                alert(`Failed to ${mealId ? 'update' : 'add'} the meal. Please try again!`);
+                console.error(`Error ${mealId ? 'updating' : 'saving'} meal:`, error);
+            });
+    };
+
+    const handleImageUpload = () => {
+        if (imageURL.trim() === '') {
+            alert('Please enter a valid image URL');
+            return;
+        }
+
+        fetch('/api/upload-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ url: imageURL, mealId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                setImageURL(data.imageUrl);
+                alert('Image uploaded successfully!');
+            })
+            .catch(error => {
+                alert('Failed to upload image. Please try again!');
+                console.error('Error uploading image:', error);
+            });
+    };
+
+    return (
+        <PageContainer>
+            <PageContainer.Header>
+                <NavBar title="Meal builder" />
+            </PageContainer.Header>
+            <PageContainer.Content>
+                <div className='flex flex-col gap-4'>
+                    <Input
+                        label="Recipe name"
+                        value={recipeName}
+                        onChange={(e) => setRecipeName(e.target.value)}
+                        placeholder="Give it a name..."
+                        disabled={!isEditing}
+                    />
+                    <Input
+                        label="Author name"
+                        value={authorName}
+                        onChange={(e) => setAuthorName(e.target.value)}
+                        placeholder="Enter author name..."
+                        disabled={!isEditing}
+                    />
+                    <Input
+                        label="Image URL"
+                        value={imageURL}
+                        onChange={(e) => setImageURL(e.target.value)}
+                        placeholder="Enter image URL..."
+                        disabled={!isEditing}
+                    />
+                    {isEditing && (
+                        <Button onClick={handleImageUpload}>Upload Image</Button>
+                    )}
+                    <div>
+                        <div className="flex items-center mb-2">
+                            <div className="grow">
+                                <Heading variant="h3">Ingredients</Heading>
+                                <p className="text-sm font-light">{ingredients.length} item{ingredients.length > 1 ? "s" : ""}</p>
+                            </div>
+                            {isEditing && (
+                                <Button onClick={() => setAddIngredients(true)}>Add</Button>
+                            )}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            {ingredients.length > 0 && (
+                                <CardContainer>
+                                    {ingredients.map(ingredient => (
+                                        <Card
+                                            key={ingredient.id}
+                                            title={ingredient.name}
+                                            description={`${ingredient.quantity} ${ingredient.unit}`}
+                                            buttonType="remove"
+                                            buttonClick={isEditing ? () => removeIngredient(ingredient.id) : null}
+                                        />
+                                    ))}
+                                </CardContainer>
+                            )}
+                            {isEditing && !mealId && (
+                                <Button onClick={handleAddMeal} disabled={ingredients.length === 0 || !recipeName}>Save</Button>
+                            )}
+                            {!isEditing && mealId && (
+                                <Button onClick={() => setIsEditing(true)}>Edit</Button>
+                            )}
+                            {isEditing && mealId && (
+                                <>
+                                    <Button onClick={handleAddMeal} disabled={ingredients.length === 0 || !recipeName}>Save</Button>
+                                    <Button.Secondary onClick={() => setIsEditing(false)}>Cancel edit</Button.Secondary>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                {addIngredients && <IngredientSearch onIngredientSelect={handleIngredientSelect} onClose={() => setAddIngredients(false)} />}
+                {isModalOpen && (
+                    <Modal title={`Add Ingredient - ${currentIngredient?.name}`} onClose={toggleModal}>
+                        <div className='flex flex-col gap-4'>
+
+                            <Input
+                                label="Quantity"
+                                type="number"
+                                value={quantity}
+                                onChange={(e) => setQuantity(e.target.value)}
+                                placeholder="Enter quantity"
+                            />
+
+                            <Select
+                                label="Unit"
+                                value={unit}
+                                onChange={(e) => setUnit(e.target.value)}
+                                options={commonUnits}
+                            />
+                            
+                            <div className="modal-action flex justify-end gap-2 mt-4">
+                                <Button onClick={addIngredientToRecipe} disabled={!quantity || !unit}>Add</Button>
+                                <Button.Secondary onClick={toggleModal}>Cancel</Button.Secondary>
+                            </div>
+                        </div>
+                    </Modal>
+                )}
+            </PageContainer.Content>
+        </PageContainer>
+    );
+}
+
+export default RecipeBuilder;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\mealPlan\AddMealPlanDay.jsx ====================
+
+// src/components/mealPlan/AddMealPlanDay.jsx
+
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import PageContainer from '../layout/PageContainer';
+import NavBar from '../common/NavBar';
+import CardContainer from '../common/CardContainer';
+import Modal from '../common/Modal';
+import Button from '../common/Button';
+import ShoppingList from '../common/ShoppingList';
+import Heading from '../common/Heading';
+import MealGrid from '../meal/MealGrid';
+import SearchBar from '../common/SearchBar';
+import dayjs from 'dayjs';
+import { getDateRange, formatDayAndWeekday } from '../../utils';
+import { searchItems } from '../../utils/search';
+import MealCard from '../meal/MealCard';
+import { RxCross1 } from 'react-icons/rx';
+import useFetch from '../../hooks/useFetch';
+import usePost from '../../hooks/usePost';
+import Notification from '../common/Notification';
+
+function AddMealPlanDay() {
+    const { mealPlanId } = useParams();
+    const { data: meals, loading: mealsLoading, error: mealsError } = useFetch('/api/meals');
+    const { data: mealPlan, loading: mealPlanLoading, error: mealPlanError, refetch } = useFetch(`/api/meal-plans/${mealPlanId}`);
+
+    const [selectedDate, setSelectedDate] = useState('');
+    const [mealType, setMealType] = useState('');
+    const [mealPlanDays, setMealPlanDays] = useState([]);
+    const [dates, setDates] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [shoppingList, setShoppingList] = useState(null);
+    const [isShoppingListModalOpen, setIsShoppingListModalOpen] = useState(false);
+    const [isMealModalOpen, setIsMealModalOpen] = useState(false);
+    const [editingMealType, setEditingMealType] = useState('');
+    const [selectedMeal, setSelectedMeal] = useState(null);
+
+    const { postData: addMealToPlan, loading: addLoading, error: addError, notification: addNotification, setNotification: setAddNotification } = usePost(`/api/meal-plans/${mealPlanId}/meals`);
+    const { postData: deleteMealFromPlan, loading: deleteLoading, error: deleteError, notification: deleteNotification, setNotification: setDeleteNotification } = usePost(`/api/meal-plans/${mealPlanId}/meals/delete`);
+
+    const toggleModal = () => {
+        setIsModalOpen(!isModalOpen);
+        if (isModalOpen) {
+            setEditingMealType('');
+        }
+    };
+
+    const toggleShoppingListModal = () => setIsShoppingListModalOpen(!isShoppingListModalOpen);
+    const toggleMealModal = () => setIsMealModalOpen(!isMealModalOpen);
+
+    useEffect(() => {
+        if (mealPlan) {
+            setMealPlanDays(mealPlan.MealPlanDays);
+            setDates(getDateRange(mealPlan.startDate, mealPlan.endDate));
+
+            if (!selectedDate) {
+                const formattedStartDate = mealPlan.startDate.split(' ')[0];
+                setSelectedDate(formattedStartDate);
+            }
+        }
+    }, [mealPlan]);
+
+    const getMealsForDate = (date) => {
+        return mealPlanDays.filter(d => d.date.slice(0, 10) === date)
+            .reduce((acc, curr) => {
+                acc[curr.mealType.toLowerCase()] = curr.Meal;
+                return acc;
+            }, {});
+    };
+
+    const dateHasMeals = (date) => {
+        const meals = getMealsForDate(date);
+        return Object.keys(meals).length > 0;
+    };
+
+    const mealsForSelectedDate = getMealsForDate(selectedDate);
+
+    const handleSearchChange = (event) => {
+        setSearchQuery(event.target.value);
+    };
+
+    const filteredMeals = searchItems(meals || [], ['name'], searchQuery);
+
+    const handleMealSelect = async (meal) => {
+        try {
+            await addMealToPlan(
+                { date: selectedDate, mealId: meal.id, mealType: editingMealType || mealType },
+                'Meal added to plan successfully!',
+                'Failed to add meal to plan. Please try again later.'
+            );
+            await refetch();
+            setIsModalOpen(false);
+            setEditingMealType('');
+        } catch (error) {
+            console.error('Error adding meal to meal plan:', error);
+        }
+    };
+
+    const handleDeleteMeal = async () => {
+        try {
+            await deleteMealFromPlan(
+                { date: selectedDate, mealType: editingMealType },
+                'Meal removed from plan successfully!',
+                'Failed to remove meal from plan. Please try again later.'
+            );
+            await refetch();
+            setIsMealModalOpen(false);
+            setEditingMealType('');
+        } catch (error) {
+            console.error('Error deleting meal from meal plan:', error);
+        }
+    };
+
+    const generateShoppingList = async () => {
+        try {
+            const response = await fetch(`/api/shopping-list/create/${mealPlanId}`);
+            if (!response.ok) {
+                throw new Error('Failed to generate shopping list');
+            }
+            const shoppingListData = await response.json();
+            setShoppingList(shoppingListData);
+            toggleShoppingListModal();
+            setAddNotification({ message: 'Shopping list created successfully!', type: 'success' });
+        } catch (error) {
+            setAddNotification({ message: 'Failed to create shopping list. Please try again later.', type: 'error' });
+            alert(`Error: ${error.message}`);
+        }
+    };
+
+    function openModal(meal) {
+        setMealType(meal);
+        setEditingMealType('');
+        toggleModal();
+    }
+
+    function handleMealCardClick(data, type) { 
+        const meal = meals.find(meal => meal.id === data.id);
+        console.log(meal);
+        setEditingMealType(type);
+        setSelectedMeal(meal); 
+        toggleMealModal();
+    }
+
+    if (mealPlanLoading || mealsLoading) return <p>Loading meal plan details...</p>;
+    if (mealPlanError) return <p>Error loading meal plan: {mealPlanError}</p>;
+    if (mealsError) return <p>Error loading meals: {mealsError}</p>;
+
+    if (!mealPlan || !dates) return <p>Loading meal plan details...</p>;
+
+    return (
+        <>
+            <PageContainer>
+                <PageContainer.Header>
+                    <NavBar title="Add meal" />
+                    <div className="flex flex-col gap-4">
+                        <div className="flex gap-2 w-full justify-between">
+                            {dates && dates.map(date => {
+                                const { day, weekdayInitial } = formatDayAndWeekday(date);
+                                const isSelectedDate = dayjs(date).format('YYYY-MM-DD') === dayjs(selectedDate).format('YYYY-MM-DD');
+                                const hasMeals = dateHasMeals(date);
+                                return (
+                                    <button
+                                        key={date}
+                                        className={`flex flex-col items-center rounded px-3 pb-1.5 ${isSelectedDate ? 'bg-[#70B9BE] text-white' : 'bg-transparent text-black'}`}
+                                        onClick={() => setSelectedDate(date)}
+                                    >
+                                        <div className="flex flex-col items-center">
+                                            <span className={`mt-1 h-1 w-1 rounded-full ${hasMeals ? (isSelectedDate ? 'bg-white' : 'bg-[#70B9BE]') : 'bg-transparent'}`}></span>
+                                            <div className="flex flex-col gap-1">
+                                                <p className="text-xs">{weekdayInitial}</p>
+                                                <p className="text-xs font-semibold">{day}</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </PageContainer.Header>
+                <PageContainer.Content>
+                    <Heading variant="h4">{dayjs(selectedDate).format('dddd D MMMM YYYY')}</Heading>
+                    <div className="flex flex-col gap-4 mt-4">
+                        {['breakfast', 'lunch', 'dinner'].map((type) => (
+                            <CardContainer key={type}>
+                                <Heading variant="h3" className="mt-4">{type.charAt(0).toUpperCase() + type.slice(1)}</Heading>
+                                {mealsForSelectedDate[type] ? (
+                                    <MealCard meal={mealsForSelectedDate[type]} action="add" onClick={() => handleMealCardClick(mealsForSelectedDate[type], type)} />
+                                ) : (
+                                    <Button.Secondary onClick={() => openModal(type)}>Add {type}</Button.Secondary>
+                                )}
+                            </CardContainer>
+                        ))}
+                    </div>
+                    <div className="flex justify-end mt-4">
+                        <Button onClick={generateShoppingList}>Create Shopping List</Button>
+                    </div>
+                </PageContainer.Content>
+            </PageContainer>
+
+            {isModalOpen && (
+                <Modal title="Select a meal" onClose={toggleModal}>
+                    <div className='flex flex-col gap-2'>
+                        {editingMealType && (
+                            <span className='mb-8 flex flex-col'>
+                                <Button.Destructive onClick={handleDeleteMeal}>Delete meal</Button.Destructive>
+                            </span>
+                        )}
+                        <div className='flex flex-col'>
+                            <SearchBar searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
+                            <MealGrid meals={filteredMeals} onMealSelect={handleMealSelect} />
+                        </div>
+                    </div>
+                </Modal>
+            )}
+
+            {isShoppingListModalOpen && (
+                <Modal title="Shopping List" onClose={toggleShoppingListModal}>
+                    <ShoppingList items={shoppingList} onClose={toggleShoppingListModal} />
+                </Modal>
+            )}
+
+            {isMealModalOpen && (
+                <div className='absolute left-0 top-0 w-full h-full flex justify-center bg-black/30'>
+                    <div className='bg-white w-full md:w-[395px] rounded-t-xl'>
+                        {
+                            selectedMeal.imageUrl && (
+                                <>
+                                    <div className={`relative h-[350px] w-full bg-center bg-cover bg-[url("${selectedMeal.imageUrl ? `${window.location.origin.replace(window.location.port, '5000')}${selectedMeal.imageUrl}` : `https://picsum.photos/300?random=${selectedMeal.id}`}")]`}>
+                                        <div className='bg-gradient-to-b from-white/20 w-full h-[350px] h-full absolute top-0 z-10'></div>
+                                    </div>
+                                    <button
+                                        onClick={toggleMealModal}
+                                        aria-label="Close modal"
+                                        className="absolute top-0 text-xl bg-white rounded-xl p-3 shadow-lg shadow-black/30 m-4 z-20"
+                                    >
+                                        <RxCross1 />
+                                    </button>
+                                </>
+                            )
+                        }
+
+                        <div className='absolute w-full rounded-t-2xl p-8 flex flex-col gap-4 bg-white mt-[-20px]'>
+                            <div className='flex flex-col gap-1'>
+                                <p className='text-xl font-bold'>{selectedMeal.name}</p>
+                                <p className='text-sm mb-2'>By <span className='font-medium'>{selectedMeal.author || "Coffey special"}</span></p>
+                                <Heading variant="h3">Ingredients</Heading>
+                                <ul className='text-sm mb-4'>
+                                    {selectedMeal.ingredients.map((ingredient, index) => <li key={index}>{ingredient.name} - {ingredient.quantity} {ingredient.unit} </li>)}
+                                </ul>
+                                <Button.Destructive onClick={handleDeleteMeal}>Remove from plan</Button.Destructive>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {(addNotification || deleteNotification) && (
+                <Notification
+                    message={addNotification?.message || deleteNotification?.message}
+                    type={addNotification?.type || deleteNotification?.type}
+                    onClose={() => {
+                        setAddNotification(null);
+                        setDeleteNotification(null);
+                    }}
+                />
+            )}
+        </>
+    );
+}
+
+export default AddMealPlanDay;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\mealPlan\MealPlanForm.jsx ====================
+
+// src/components/mealPlan/MealPlanForm.jsx
+
+import React, { useState } from 'react';
+import NavBar from '../common/NavBar';
+import PageContainer from '../layout/PageContainer';
+import Button from '../common/Button';
+import Heading from '../common/Heading';
+import Input from '../common/Input';
+import Notification from '../common/Notification';
+
+function MealPlanForm() {
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('');
+    const [notification, setNotification] = useState(null);
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setLoading(true);
+        setMessage('');
+
+        try {
+            const response = await fetch('/api/meal-plans', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ startDate, endDate })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            setMessage('Meal plan created successfully!');
+            setNotification({ message: 'Meal plan created successfully!', type: 'success' });
+        } catch (error) {
+            console.error('Failed to create meal plan:', error);
+            setMessage('Failed to create meal plan. Please try again later.');
+            setNotification({ message: 'Failed to create meal plan. Please try again later.', type: 'error' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <PageContainer>
+            <PageContainer.Header>
+                <NavBar title="Create a meal plan" />
+            </PageContainer.Header>
+            <PageContainer.Content>
+                <form onSubmit={handleSubmit} className='flex flex-col gap-4 w-full'>
+                    <Input
+                        label="Start date"
+                        type="date"
+                        value={startDate}
+                        onChange={e => setStartDate(e.target.value)}
+                        required
+                    />
+                    <Input
+                        label="End date"
+                        type="date"
+                        value={endDate}
+                        onChange={e => setEndDate(e.target.value)}
+                        required
+                    />
+                    <Button type="submit" disabled={loading}>
+                        {loading ? 'Creating...' : 'Create Meal Plan'}
+                    </Button>
+                </form>
+                {message && <p>{message}</p>}
+                {notification && (
+                    <Notification
+                        message={notification.message}
+                        type={notification.type}
+                        onClose={() => setNotification(null)}
+                    />
+                )}
+            </PageContainer.Content>
+        </PageContainer>
+    );
+}
+
+export default MealPlanForm;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\mealPlan\MealPlanList.jsx ====================
+
+// src/components/mealPlan/MealPlanList.jsx
+
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import NavBar from '../common/NavBar';
+import Card from '../common/Card';
+import PageContainer from '../layout/PageContainer';
+import CardContainer from '../common/CardContainer';
+import Heading from '../common/Heading';
+import { isThisWeek, isNextWeek, formatDate } from '../../utils/date';
+import useFetch from '../../hooks/useFetch';
+
+function MealPlanList() {
+    const { data: mealPlans, loading, error } = useFetch('/api/meal-plans');
+    const navigate = useNavigate();
+
+    const sortedMealPlans = mealPlans?.sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) || [];
+    const thisWeekPlan = sortedMealPlans.find(plan => isThisWeek(plan.startDate));
+    const nextWeekPlan = sortedMealPlans.find(plan => isNextWeek(plan.startDate));
+    const previousWeeksPlans = sortedMealPlans.filter(plan => !isThisWeek(plan.startDate) && !isNextWeek(plan.startDate)).reverse();
+
+    const getMealCounts = (plan) => {
+        const mealCounts = { breakfast: 0, lunch: 0, dinner: 0 };
+        plan.MealPlanDays.forEach(day => {
+            if (day.mealType in mealCounts) {
+                mealCounts[day.mealType]++;
+            }
+        });
+        return mealCounts;
+    };
+
+    const generateDescription = (plan) => {
+        const { breakfast, lunch, dinner } = getMealCounts(plan);
+        if (breakfast === 0 && lunch === 0 && dinner === 0) {
+            return 'No meals added yet';
+        }
+        const pluralize = (count, noun) => {
+            if (noun === 'lunch') {
+                return `${count} ${count !== 1 ? 'lunches' : 'lunch'}`;
+            }
+            return `${count} ${noun}${count !== 1 ? 's' : ''}`;
+        };
+        return `${pluralize(breakfast, 'breakfast')}, ${pluralize(lunch, 'lunch')}, and ${pluralize(dinner, 'dinner')}.`;
+    };
+
+    const handlePlanClick = (planId) => {
+        navigate(`/plan/${planId}/options`);
+    };
+
+    return (
+        <PageContainer>
+            <PageContainer.Header>
+                <NavBar title="Meal Plans" />
+            </PageContainer.Header>
+            <PageContainer.Content>
+                <div className='flex flex-col gap-4'>
+                    <CardContainer>
+                        <Heading variant="h3">This Week</Heading>
+                        {thisWeekPlan ? (
+                            <Card
+                                key={thisWeekPlan.id}
+                                title={`${formatDate(thisWeekPlan.startDate)} - ${formatDate(thisWeekPlan.endDate)}`}
+                                description={generateDescription(thisWeekPlan)}
+                                buttonType="view"
+                                buttonClick={() => handlePlanClick(thisWeekPlan.id)}
+                            />
+                        ) : (
+                            <Card
+                                title="No plan yet"
+                                description="Click to add a plan for this week."
+                                buttonType="add"
+                                buttonLink="/plan/add"
+                            />
+                        )}
+                    </CardContainer>
+                    <CardContainer>
+                        <Heading variant="h3">Next Week</Heading>
+                        {nextWeekPlan ? (
+                            <Card
+                                key={nextWeekPlan.id}
+                                title={`${formatDate(nextWeekPlan.startDate)} - ${formatDate(nextWeekPlan.endDate)}`}
+                                description={generateDescription(nextWeekPlan)}
+                                buttonType="view"
+                                buttonClick={() => handlePlanClick(nextWeekPlan.id)}
+                            />
+                        ) : (
+                            <Card
+                                title="No plan yet"
+                                description="Click to add a plan for next week."
+                                buttonType="add"
+                                buttonLink="plan/add"
+                            />
+                        )}
+                    </CardContainer>
+                    <CardContainer>
+                        <Heading variant="h3">Previous weeks</Heading>
+                        <CardContainer>
+                            {previousWeeksPlans.length > 0 ? (
+                                previousWeeksPlans.map(plan => (
+                                    <Card
+                                        key={plan.id}
+                                        title={`${formatDate(plan.startDate)} - ${formatDate(plan.endDate)}`}
+                                        description={generateDescription(plan)}
+                                        buttonType="view"
+                                        buttonClick={() => handlePlanClick(plan.id)}
+                                    />
+                                ))
+                            ) : (
+                                <Card title="No previous meal plans available." />
+                            )}
+                        </CardContainer>
+                    </CardContainer>
+                </div>
+            </PageContainer.Content>
+        </PageContainer>
+    );
+}
+
+export default MealPlanList;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\components\mealPlan\MealPlanOptions.jsx ====================
+
+import React from 'react';
+import { Link, useParams } from 'react-router-dom';
+import NavBar from '../common/NavBar';
+import PageContainer from '../layout/PageContainer';
+import Button from '../common/Button';
+
+function MealPlanOptions() {
+    const { mealPlanId } = useParams();
+
+    return (
+        <PageContainer>
+            <PageContainer.Header>
+                <NavBar title="Meal Plan Options" />
+            </PageContainer.Header>
+            <PageContainer.Content>
+                <div className="flex flex-col items-center gap-4">
+                    <Link to={`/plan/${mealPlanId}/add-meals`}>
+                        <Button>Add Meals to Meal Plan</Button>
+                    </Link>
+                    <Link to={`/plan/${mealPlanId}/create-shopping-list`}>
+                        <Button>Create Shopping List</Button>
+                    </Link>
+                </div>
+            </PageContainer.Content>
+        </PageContainer>
+    );
+}
+
+export default MealPlanOptions;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\hooks\useFetch.js ====================
+
+// hooks/useFetch.js
+import { useState, useEffect, useCallback } from 'react';
+
+const useFetch = (url) => {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchData = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setData(data);
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [url]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return { data, loading, error, refetch: fetchData };
+};
+
+export default useFetch;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\hooks\usePost.js ====================
+
+// src/hooks/usePost.js
+import { useState } from 'react';
+
+const usePost = (url) => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [notification, setNotification] = useState(null);
+
+    const postData = async (body, successMessage = 'Operation successful!', errorMessage = 'Operation failed. Please try again later.') => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setNotification({ message: successMessage, type: 'success' });
+            return data;
+        } catch (error) {
+            setError(error.message);
+            setNotification({ message: errorMessage, type: 'error' });
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { postData, loading, error, notification, setNotification };
+};
+
+export default usePost;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\routes\ErrorPage.jsx ====================
+
+import React from "react";
+
+import { useRouteError } from "react-router-dom";
+
+export default function ErrorPage() {
+  const error = useRouteError();
+  console.error(error);
+
+  return (
+    <div id="error-page">
+      <h1>Oops!</h1>
+      <p>Sorry, an unexpected error has occurred.</p>
+      <p>
+        <i>{error.statusText || error.message}</i>
+      </p>
+    </div>
+  );
+}
+
+==================== C:/Code/.projects/meal-planner-app/client/src\routes\Root.jsx ====================
+
+import { Outlet } from "react-router-dom";
+
+function Root() {
+  return (   
+      <Outlet />
+  );
+}
+
+export default Root;
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\utils\date.js ====================
+
+// utils/date.js
+
+export function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+}
+
+export function isThisWeek(date) {
+    const now = new Date();
+    return getWeekNumber(now) === getWeekNumber(new Date(date.split(' ')[0]));
+}
+
+export function isNextWeek(date) {
+    const now = new Date();
+    return getWeekNumber(now) + 1 === getWeekNumber(new Date(date.split(' ')[0]));
+}
+
+export function formatDate(dateString) {
+    const date = new Date(dateString.split(' ')[0]);
+    return date.toLocaleDateString('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
+    });
+}
+
+export function formatDateConsistent(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+}
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\utils\index.js ====================
+
+export const parseDate = (input) => {
+    if (!input) return null;
+
+    const parts = input.match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}\.\d{3}) ([+-]\d{2}:\d{2})/);
+    if (!parts) {
+        console.error("Invalid date format:", input);
+        return null;
+    }
+
+    const dateString = `${parts[1]}T${parts[2]}${parts[3]}`;
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+        console.error("Invalid date parsed:", dateString);
+        return null;
+    }
+    return date;
+};
+
+export const getDateRange = (start, end) => {
+    let startDate = parseDate(start);
+    const endDate = parseDate(end);
+
+    if (!startDate || !endDate) {
+        console.error('Invalid start or end date', { start, end });
+        return [];
+    }
+
+    const dates = [];
+    while (startDate <= endDate) {
+        dates.push(startDate.toISOString().split('T')[0]);
+        startDate = new Date(startDate.setDate(startDate.getDate() + 1));
+    }
+
+    return dates;
+};
+
+export const formatDayAndWeekday = (dateString) => {
+    const weekdayInitials = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const weekdayIndex = date.getDay();
+    const weekdayInitial = weekdayInitials[weekdayIndex];
+    return { day, weekdayInitial };
+};
+
+
+==================== C:/Code/.projects/meal-planner-app/client/src\utils\search.js ====================
+
+import Fuse from 'fuse.js';
+
+export const searchItems = (items, keys, searchTerm, threshold = 0.3) => {
+    const fuse = new Fuse(items, {
+        keys,
+        includeScore: true,
+        threshold
+    });
+
+    return searchTerm ? fuse.search(searchTerm).map(result => result.item) : items;
+};
+
+
+==================== C:/Code/.projects/meal-planner-app/server\server.js ====================
+
+// server.js
+const express = require('express');
+const cors = require('cors');
+const path = require('path'); // Add this import to handle paths correctly
+const app = express();
+
+// Import Sequelize and model setup
+const sequelize = require('./models/database'); // Adjust the path according to your project structure
+require('./models/relations'); // This will automatically set up relationships
+
+app.use(cors());
+app.use(express.json());
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+const mealsRoutes = require('./routes/meals');
+const ingredientsRoutes = require('./routes/ingredients');
+const shoppingListRoutes = require('./routes/shopping-list');
+const mealPlanRoutes = require('./routes/meal-plans');
+const uploadRoutes = require('./routes/upload'); // Add the upload route
+
+app.use('/api/meals', mealsRoutes);
+app.use('/api/ingredients', ingredientsRoutes);
+app.use('/api/shopping-list', shoppingListRoutes);
+app.use('/api/meal-plans', mealPlanRoutes);
+app.use('/api', uploadRoutes); // Use the upload route
+
+const PORT = process.env.PORT || 5000;
+
+// Sync all defined models to the database
+sequelize.sync({ force: false }).then(() => {
+    console.log('Database synced!');
+    app.listen(PORT, '0.0.0.0', () => console.log(`Server running on all network interfaces at port ${PORT}`));
+}).catch(err => {
+    console.error('Failed to sync database or start server:', err);
+});
+
+
+==================== C:/Code/.projects/meal-planner-app/server\config\config.json ====================
+
+{
+  "development": {
+    "dialect": "sqlite",
+    "storage": "./mealplanner.sqlite"
+  }
+}
+
+
+==================== C:/Code/.projects/meal-planner-app/server\models\Author.js ====================
+
+// models/Author.js
+
+const { DataTypes } = require('sequelize');
+const sequelize = require('./database');
+
+const Author = sequelize.define('Author', {
+    name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    }
+}, {
+    timestamps: true // This will automatically add createdAt and updatedAt fields
+});
+
+module.exports = Author;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\models\database.js ====================
+
+// models/database.js
+
+const { Sequelize } = require('sequelize');
+
+const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: './mealplanner.sqlite', // This is your SQLite database file
+    logging: false // Turn off logging; set to console.log to enable logging
+});
+
+module.exports = sequelize;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\models\index.js ====================
+
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+const process = require('process');
+const basename = path.basename(__filename);
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.json')[env];
+const db = {};
+
+let sequelize;
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
+
+fs
+  .readdirSync(__dirname)
+  .filter(file => {
+    return (
+      file.indexOf('.') !== 0 &&
+      file !== basename &&
+      file.slice(-3) === '.js' &&
+      file.indexOf('.test.js') === -1
+    );
+  })
+  .forEach(file => {
+    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    db[model.name] = model;
+  });
+
+Object.keys(db).forEach(modelName => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
+
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\models\Ingredient.js ====================
+
+// models/Ingredient.js
+
+const { DataTypes } = require('sequelize');
+const sequelize = require('./database');
+
+const Ingredient = sequelize.define('Ingredient', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: DataTypes.STRING, allowNull: false },
+    category: { type: DataTypes.STRING, allowNull: false },
+    defaultUnit: { type: DataTypes.STRING },  
+    defaultQuantity: { type: DataTypes.INTEGER }
+});
+
+module.exports = Ingredient;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\models\Meal.js ====================
+
+// models/Meal.js
+
+const { DataTypes } = require('sequelize');
+const sequelize = require('./database');
+const Author = require('./Author'); // Ensure this is correctly imported
+
+const Meal = sequelize.define('Meal', {
+    name: DataTypes.STRING,
+    imageUrl: DataTypes.STRING,
+    authorId: DataTypes.INTEGER
+});
+
+Meal.belongsTo(Author, { foreignKey: 'authorId' });
+
+module.exports = Meal;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\models\MealIngredient.js ====================
+
+// models/MealIngredient.js
+
+const Meal = require('./Meal');
+const Ingredient = require('./Ingredient');
+const { DataTypes } = require('sequelize');
+const sequelize = require('./database');
+
+const MealIngredient = sequelize.define('MealIngredient', {
+    mealId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Meal',
+        key: 'id'
+      }
+    },
+    ingredientId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Ingredient',
+        key: 'id'
+      }
+    },
+    unit: DataTypes.STRING,
+    quantity: DataTypes.DECIMAL
+  }, {
+    timestamps: true
+  });
+  
+
+
+// Associate directly in MealIngredient.js
+Meal.hasMany(MealIngredient, {foreignKey: 'mealId'});
+MealIngredient.belongsTo(Meal, {foreignKey: 'mealId'});
+
+Ingredient.hasMany(MealIngredient, {foreignKey: 'ingredientId'});
+MealIngredient.belongsTo(Ingredient, {foreignKey: 'ingredientId'});
+
+
+module.exports = MealIngredient;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\models\MealPlan.js ====================
+
+// models/MealPlan.js
+
+const { DataTypes } = require('sequelize');
+const sequelize = require('./database');
+
+const MealPlan = sequelize.define('MealPlan', {
+    startDate: DataTypes.DATE,
+    endDate: DataTypes.DATE
+}, {
+    timestamps: true
+});
+
+module.exports = MealPlan;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\models\MealPlanDay.js ====================
+
+// models/MealPlanDay.js
+
+const { DataTypes } = require('sequelize');
+const sequelize = require('./database');
+const Meal = require('./Meal'); // Ensure this is correctly imported
+const MealPlan = require('./MealPlan'); // Ensure this is correctly imported
+
+const MealPlanDay = sequelize.define('MealPlanDay', {
+    date: DataTypes.DATE,
+    mealType: DataTypes.STRING
+}, {
+    timestamps: false
+});
+
+MealPlanDay.belongsTo(MealPlan, {foreignKey: 'mealPlanId'});
+MealPlanDay.belongsTo(Meal, {foreignKey: 'mealId'});
+
+module.exports = MealPlanDay;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\models\relations.js ====================
+
+// models/relations.js
+
+const Meal = require('./Meal');
+const Author = require('./Author');
+const Ingredient = require('./Ingredient');
+const MealIngredient = require('./MealIngredient');
+const ShoppingList = require('./ShoppingList');
+const MealPlan = require('./MealPlan');
+const MealPlanDay = require('./MealPlanDay');
+
+// Define relationships
+Meal.belongsToMany(Ingredient, { through: MealIngredient, as: 'Ingredients' });
+Ingredient.belongsToMany(Meal, { through: MealIngredient, as: 'Meals' });
+
+Ingredient.hasOne(ShoppingList, { foreignKey: 'ingredientId' });
+ShoppingList.belongsTo(Ingredient, { foreignKey: 'ingredientId' });
+
+MealPlan.hasMany(MealPlanDay, {foreignKey: 'mealPlanId'});
+Meal.hasMany(MealPlanDay, {foreignKey: 'mealId'});
+
+Meal.belongsTo(Author, { foreignKey: 'authorId' });
+Author.hasMany(Meal, { foreignKey: 'authorId' });
+
+==================== C:/Code/.projects/meal-planner-app/server\models\ShoppingList.js ====================
+
+// models/ShoppingList.js
+
+const { DataTypes } = require('sequelize');
+const sequelize = require('./database');
+
+const ShoppingList = sequelize.define('ShoppingList', {
+    ingredientId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,  // Ensure this is set if you want to use 'ON CONFLICT'
+        unique: true,
+        allowNull: false
+    },
+    quantityNeeded: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    quantityPurchased: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    purchaseStatus: {
+        type: DataTypes.STRING,
+        defaultValue: 'Pending'
+    }
+}, {
+    timestamps: false
+});
+
+
+module.exports = ShoppingList;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\routes\ingredients.js ====================
+
+// routes/ingredients.js
+
+const express = require('express');
+const Ingredient = require('../models/Ingredient');
+const router = express.Router();
+
+// POST /api/ingredients - Create a new ingredient
+router.post('/', async (req, res) => {
+    const { name, category, defaultUnit, defaultQuantity } = req.body;
+
+    try {
+        const newIngredient = await Ingredient.create({
+            name,
+            category,
+            defaultUnit,
+            defaultQuantity
+        });
+        res.status(201).send(newIngredient);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+});
+
+
+// GET /api/ingredients - Get all ingredients
+router.get('/', async (req, res) => {
+    try {
+        const ingredients = await Ingredient.findAll();
+        res.send(ingredients);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+// PUT /api/ingredients/:id - Update an ingredient
+router.put('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [updated] = await Ingredient.update(req.body, { where: { id } });
+        if (updated) {
+            const updatedIngredient = await Ingredient.findByPk(id);
+            res.status(200).send(updatedIngredient);
+        } else {
+            res.status(404).send("Ingredient not found");
+        }
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+// DELETE /api/ingredients/:id - Delete an ingredient
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deleted = await Ingredient.destroy({ where: { id } });
+        if (deleted) {
+            res.status(204).send("Ingredient deleted");
+        } else {
+            res.status(404).send("Ingredient not found");
+        }
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+module.exports = router;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\routes\meal-plans.js ====================
+
+// routes/meal-plans.js
+
+const express = require('express');
+const Meal = require('../models/Meal');
+const MealPlan = require('../models/MealPlan');
+const MealPlanDay = require('../models/MealPlanDay');
+const Author = require('../models/Author');
+const router = express.Router();
+const { Op } = require('sequelize');
+
+// Helper function to transform the meal object
+function transformMeal(meal) {
+    return {
+        id: meal.id,
+        name: meal.name,
+        imageUrl: meal.imageUrl,
+        author: meal.Author ? meal.Author.name : null,
+        createdAt: meal.createdAt,
+        updatedAt: meal.updatedAt,
+        authorId: meal.authorId
+    };
+}
+
+// POST /api/meal-plans - Create a new meal plan
+router.post('/', async (req, res) => {
+    const { startDate, endDate } = req.body;
+
+    try {
+        const newMealPlan = await MealPlan.create({
+            startDate,
+            endDate
+        });
+        res.status(201).json(newMealPlan);
+    } catch (error) {
+        console.error('Failed to create meal plan:', error);
+        res.status(500).json({ error: 'Failed to create meal plan' });
+    }
+});
+
+// GET /api/meal-plans/:id - Get a specific meal plan by ID
+router.get('/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const mealPlan = await MealPlan.findByPk(id, {
+            include: [
+                {
+                    model: MealPlanDay,
+                    include: [
+                        {
+                            model: Meal,
+                            include: [
+                                {
+                                    model: Author,
+                                    attributes: ['name']
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        });
+
+        if (!mealPlan) {
+            return res.status(404).json({ message: "Meal plan not found" });
+        }
+
+        // Transform the mealPlan to include author name directly in the meal object
+        const transformedMealPlan = {
+            ...mealPlan.toJSON(),
+            MealPlanDays: mealPlan.MealPlanDays.map(mealPlanDay => ({
+                ...mealPlanDay.toJSON(),
+                Meal: transformMeal(mealPlanDay.Meal)
+            }))
+        };
+
+        res.status(200).json(transformedMealPlan);
+    } catch (error) {
+        console.error('Error fetching meal plan:', error);
+        res.status(500).send({ error: 'Error fetching meal plan' });
+    }
+});
+// GET /api/meal-plans - List all meal plans
+router.get('/', async (req, res) => {
+    try {
+        const mealPlans = await MealPlan.findAll({
+            include: [{
+                model: MealPlanDay,
+                include: [Meal] // This will include details of meals for each day
+            }]
+        });
+        res.status(200).json(mealPlans);
+    } catch (error) {
+        console.error('Error listing meal plans:', error);
+        res.status(500).json({ error: 'Error listing meal plans' });
+    }
+});
+
+// POST /api/meal-plans/:mealPlanId/meals - Add or update a meal to a specific day in a meal plan
+router.post('/:mealPlanId/meals', async (req, res) => {
+    const { mealPlanId } = req.params;
+    const { date, mealId, mealType } = req.body;
+
+    try {
+        const mealPlan = await MealPlan.findByPk(mealPlanId);
+        if (!mealPlan) {
+            return res.status(404).json({ message: "Meal plan not found" });
+        }
+
+        // Normalize date to ensure comparison is done correctly
+        const normalizedDate = new Date(date).toISOString().split('T')[0];
+
+        console.log(`Checking for existing MealPlanDay with mealPlanId: ${mealPlanId}, date: ${normalizedDate}, mealType: ${mealType}`);
+
+        // Find all entries with the same mealPlanId, date, and mealType
+        const existingMealPlanDays = await MealPlanDay.findAll({
+            where: {
+                mealPlanId,
+                mealType,
+                date: {
+                    [Op.eq]: new Date(normalizedDate)
+                }
+            }
+        });
+
+        if (existingMealPlanDays.length > 0) {
+            console.log(`Found existing MealPlanDays: ${existingMealPlanDays.map(d => d.id).join(', ')}`);
+            // Update the first existing meal
+            const mealPlanDay = existingMealPlanDays[0];
+            mealPlanDay.mealId = mealId;
+            await mealPlanDay.save();
+            console.log(`Updated existing MealPlanDay with id: ${mealPlanDay.id}`);
+
+            // Delete the rest of the existing meals
+            const remainingMealPlanDays = existingMealPlanDays.slice(1);
+            await Promise.all(remainingMealPlanDays.map(day => day.destroy()));
+            console.log(`Deleted remaining MealPlanDays: ${remainingMealPlanDays.map(d => d.id).join(', ')}`);
+            res.status(200).json(mealPlanDay); // Ensure response is sent here
+        } else {
+            // Create a new meal
+            const newMealPlanDay = await MealPlanDay.create({
+                mealPlanId,
+                date,
+                mealId,
+                mealType
+            });
+            console.log(`Created new MealPlanDay with id: ${newMealPlanDay.id}`);
+            res.status(201).json(newMealPlanDay);
+        }
+    } catch (error) {
+        console.error('Failed to add or update meal to meal plan:', error);
+        res.status(500).json({ error: 'Failed to add or update meal to meal plan' });
+    }
+});
+
+// POST /api/meal-plans/:mealPlanId/meals/delete - Delete a meal from a specific day in a meal plan
+router.post('/:mealPlanId/meals/delete', async (req, res) => {
+    const { mealPlanId } = req.params;
+    const { date, mealType } = req.body;
+
+    try {
+        const mealPlan = await MealPlan.findByPk(mealPlanId);
+        if (!mealPlan) {
+            return res.status(404).json({ message: "Meal plan not found" });
+        }
+
+        // Normalize date to ensure comparison is done correctly
+        const normalizedDate = new Date(date).toISOString().split('T')[0];
+
+        console.log(`Checking for existing MealPlanDay with mealPlanId: ${mealPlanId}, date: ${normalizedDate}, mealType: ${mealType}`);
+
+        // Find all entries with the same mealPlanId, date, and mealType
+        const existingMealPlanDays = await MealPlanDay.findAll({
+            where: {
+                mealPlanId,
+                mealType,
+                date: {
+                    [Op.eq]: new Date(normalizedDate)
+                }
+            }
+        });
+
+        if (existingMealPlanDays.length > 0) {
+            console.log(`Found existing MealPlanDays: ${existingMealPlanDays.map(d => d.id).join(', ')}`);
+            // Delete all the existing meals
+            await Promise.all(existingMealPlanDays.map(day => day.destroy()));
+            console.log(`Deleted MealPlanDays: ${existingMealPlanDays.map(d => d.id).join(', ')}`);
+        }
+
+        res.status(200).json({ message: 'Meal deleted from meal plan' });
+    } catch (error) {
+        console.error('Failed to delete meal from meal plan:', error);
+        res.status(500).json({ error: 'Failed to delete meal from meal plan' });
+    }
+});
+
+
+module.exports = router;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\routes\meals.js ====================
+
+// routes/meals.js
+
+const express = require('express');
+const Meal = require('../models/Meal');
+const MealIngredient = require('../models/MealIngredient');
+const Ingredient = require('../models/Ingredient');
+const Author = require('../models/Author');
+const router = express.Router();
+
+function serializeMeal(meal) {
+    return {
+        id: meal.id,
+        name: meal.name,
+        imageUrl: meal.imageUrl,
+        author: meal.Author ? meal.Author.name : null,
+        createdAt: meal.createdAt,
+        updatedAt: meal.updatedAt,
+        ingredients: meal.Ingredients.map(ing => ({
+            id: ing.id,
+            name: ing.name,
+            category: ing.category,
+            quantity: ing.MealIngredient.quantity,
+            unit: ing.MealIngredient.unit
+        }))
+    };
+}
+
+// POST /api/meals - Create a new meal with ingredients
+router.post('/', async (req, res) => {
+    const { name, ingredients, imageUrl, authorName } = req.body;
+
+    try {
+        let author = await Author.findOne({ where: { name: authorName } });
+        if (!author) {
+            author = await Author.create({ name: authorName });
+        }
+
+        const newMeal = await Meal.create({ name, imageUrl, authorId: author.id });
+
+        const mealIngredients = ingredients.map(ing => ({
+            MealId: newMeal.id,
+            IngredientId: ing.id,
+            quantity: ing.quantity,
+            unit: ing.unit
+        }));
+
+        await MealIngredient.bulkCreate(mealIngredients);
+
+        const mealWithIngredients = await Meal.findByPk(newMeal.id, {
+            include: [
+                {
+                    model: Ingredient,
+                    as: 'Ingredients',
+                    attributes: ['name', 'category'],
+                    through: {
+                        attributes: ['quantity', 'unit']
+                    }
+                },
+                {
+                    model: Author,
+                    attributes: ['name']
+                }
+            ]
+        });
+
+        res.status(201).json(serializeMeal(mealWithIngredients));
+    } catch (error) {
+        console.error('Failed to create meal and ingredients:', error);
+        res.status(400).json({ error: 'Failed to create meal' });
+    }
+});
+
+// GET /api/meals - Get all meals
+router.get('/', async (req, res) => {
+    try {
+        const meals = await Meal.findAll({
+            include: [
+                {
+                    model: Ingredient,
+                    as: 'Ingredients',
+                    attributes: ['id', 'name', 'category'],
+                    through: {
+                        attributes: ['quantity', 'unit']
+                    }
+                },
+                {
+                    model: Author, 
+                    attributes: ['name']
+                }
+            ],
+            order: [['createdAt', 'ASC']]
+        });
+
+        const result = meals.map(serializeMeal);
+        res.json(result);
+    } catch (error) {
+        console.error('Error fetching meals with ingredients:', error);
+        res.status(500).send(error);
+    }
+});
+
+// GET /api/meals/:mealId - Get a specific meal by ID
+router.get('/:mealId', async (req, res) => {
+    const { mealId } = req.params;
+
+    try {
+        const meal = await Meal.findByPk(mealId, {
+            include: [
+                {
+                    model: Ingredient,
+                    as: 'Ingredients',
+                    attributes: ['id', 'name', 'category'],
+                    through: {
+                        attributes: ['quantity', 'unit']
+                    }
+                },
+                {
+                    model: Author, 
+                    attributes: ['name']
+                }
+            ]
+        });
+
+        if (meal) {
+            res.status(200).json(serializeMeal(meal));
+        } else {
+            res.status(404).json({ message: "Meal not found" });
+        }
+    } catch (error) {
+        console.error('Error fetching meal details:', error);
+        res.status(500).send({ error: 'Error fetching meal details' });
+    }
+});
+
+// PUT /api/meals/:id - Update a meal
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, imageUrl, ingredients, authorName } = req.body;
+
+    try {
+        const meal = await Meal.findByPk(id);
+        if (!meal) {
+            return res.status(404).json({ message: "Meal not found" });
+        }
+
+        let author = await Author.findOne({ where: { name: authorName } });
+        if (!author) {
+            author = await Author.create({ name: authorName });
+        }
+
+        meal.name = name;
+        meal.imageUrl = imageUrl;
+        meal.authorId = author.id;
+        await meal.save();
+
+        await MealIngredient.destroy({ where: { MealId: id } });
+
+        const mealIngredients = ingredients.map(ing => ({
+            MealId: id,
+            IngredientId: ing.id,
+            quantity: ing.quantity,
+            unit: ing.unit
+        }));
+        await MealIngredient.bulkCreate(mealIngredients);
+
+        const updatedMeal = await Meal.findByPk(id, {
+            include: [
+                {
+                    model: Ingredient,
+                    as: 'Ingredients',
+                    attributes: ['id', 'name', 'category'],
+                    through: {
+                        attributes: ['quantity', 'unit']
+                    }
+                },
+                {
+                    model: Author,
+                    attributes: ['name']
+                }
+            ]
+        });
+
+        res.status(200).json(serializeMeal(updatedMeal));
+    } catch (error) {
+        console.error('Failed to update meal and ingredients:', error);
+        res.status(500).json({ error: 'Failed to update meal' });
+    }
+});
+
+// DELETE /api/meals/:id - Delete a meal
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deleted = await Meal.destroy({ where: { id } });
+        if (deleted) {
+            res.status(204).send("Meal deleted");
+        } else {
+            res.status(404).send("Meal not found");
+        }
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+module.exports = router;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\routes\shopping-list.js ====================
+
+// server/routes/shopping-list.js
+
+const express = require('express');
+const ShoppingList = require('../models/ShoppingList');
+const Ingredient = require('../models/Ingredient');
+const Meal = require('../models/Meal');
+const MealPlanDay = require('../models/MealPlanDay');
+const sequelize = require('../models/database');
+const router = express.Router();
+
+// GET /api/shopping-list/create/:mealPlanId - Create shopping list for a specific meal plan
+router.get('/create/:mealPlanId', async (req, res) => {
+    const { mealPlanId } = req.params;
+
+    try {
+        const mealPlanDays = await MealPlanDay.findAll({
+            where: { mealPlanId },
+            include: {
+                model: Meal,
+                include: {
+                    model: Ingredient,
+                    as: 'Ingredients',
+                    through: {
+                        attributes: ['quantity', 'unit']
+                    }
+                }
+            }
+        });
+
+        const ingredientsNeeded = mealPlanDays.reduce((acc, day) => {
+            day.Meal.Ingredients.forEach(ing => {
+                if (!acc[ing.id]) {
+                    acc[ing.id] = { 
+                        id: ing.id,
+                        name: ing.name,
+                        category: ing.category,
+                        quantityNeeded: 0,
+                        unit: ing.MealIngredient.unit,
+                        meals: [] // Initialize meals array to store meal information
+                    };
+                }
+                acc[ing.id].quantityNeeded += parseFloat(ing.MealIngredient.quantity);
+                acc[ing.id].meals.push({
+                    name: day.Meal.name,
+                    quantity: ing.MealIngredient.quantity
+                }); // Add meal name and quantity to the meals array
+            });
+            return acc;
+        }, {});
+
+        const transaction = await sequelize.transaction();
+        await ShoppingList.destroy({
+            truncate: true,
+            transaction
+        });
+
+        try {
+            for (let ingId in ingredientsNeeded) {
+                if (ingredientsNeeded.hasOwnProperty(ingId)) {
+                    const ing = ingredientsNeeded[ingId];
+
+                    const ingredientExists = await Ingredient.findByPk(ing.id);
+                    if (!ingredientExists) {
+                        throw new Error(`Ingredient with ID ${ing.id} does not exist`);
+                    }
+
+                    await ShoppingList.upsert({
+                        ingredientId: ing.id,
+                        quantityNeeded: ing.quantityNeeded,
+                        unit: ing.unit // Ensure unit is included here
+                    }, {
+                        transaction
+                    });
+                }
+            }
+
+            await transaction.commit();
+
+            const shoppingList = await ShoppingList.findAll({
+                include: [{ model: Ingredient, attributes: ['name', 'category'] }]
+            });
+
+            // Attach meals information to the shopping list items
+            const shoppingListWithMeals = shoppingList.map(item => ({
+                ...item.toJSON(),
+                meals: ingredientsNeeded[item.ingredientId].meals
+            }));
+
+            res.json(shoppingListWithMeals);
+        } catch (error) {
+            await transaction.rollback();
+            throw error;
+        }
+    } catch (error) {
+        console.error('Failed to create shopping list:', error.message);
+        res.status(500).send({ error: error.message || 'Error creating shopping list' });
+    }
+});
+
+// Other routes...
+
+module.exports = router;
+
+
+==================== C:/Code/.projects/meal-planner-app/server\routes\upload.js ====================
+
+const express = require('express');
+const axios = require('axios');
+const sharp = require('sharp');
+const fs = require('fs');
+const path = require('path');
+const Meal = require('../models/Meal');  // Import the Meal model
+const router = express.Router();
+
+const uploadDir = path.join(__dirname, '../public/uploads');
+
+// Ensure the upload directory exists
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+router.post('/upload-image', async (req, res) => {
+    const { url, mealId } = req.body;
+
+    if (!url) {
+        return res.status(400).json({ message: 'Image URL is required' });
+    }
+
+    try {
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        const imageBuffer = Buffer.from(response.data, 'binary');
+
+        const timestamp = Date.now();
+        const imageName = `${timestamp}.jpg`;
+        const imagePath = path.join(uploadDir, imageName);
+        const resizedImagePath = path.join(uploadDir, `resized-${imageName}`);
+
+        // Save the original image
+        await sharp(imageBuffer).toFile(imagePath);
+
+        // Resize and save the image
+        await sharp(imageBuffer).resize(300, 300).toFile(resizedImagePath);
+
+        const savedImageUrl = `/uploads/resized-${imageName}`;
+
+        // Optionally update the meal's imageUrl if mealId is provided
+        if (mealId) {
+            const meal = await Meal.findByPk(mealId);
+            if (meal) {
+                meal.imageUrl = savedImageUrl;
+                await meal.save();
+            }
+        }
+
+        res.status(200).json({ message: 'Image uploaded successfully', imageUrl: savedImageUrl });
+    } catch (error) {
+        console.error('Error uploading image:', error.message);
+        res.status(500).json({ message: 'Failed to upload image', error: error.message });
+    }
+});
+
+module.exports = router;

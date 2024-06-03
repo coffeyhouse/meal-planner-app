@@ -1,3 +1,5 @@
+// server/routes/shopping-list.js
+
 const express = require('express');
 const ShoppingList = require('../models/ShoppingList');
 const Ingredient = require('../models/Ingredient');
@@ -33,10 +35,15 @@ router.get('/create/:mealPlanId', async (req, res) => {
                         name: ing.name,
                         category: ing.category,
                         quantityNeeded: 0,
-                        unit: ing.MealIngredient.unit // Ensure unit is included here
+                        unit: ing.MealIngredient.unit,
+                        meals: [] // Initialize meals array to store meal information
                     };
                 }
                 acc[ing.id].quantityNeeded += parseFloat(ing.MealIngredient.quantity);
+                acc[ing.id].meals.push({
+                    name: day.Meal.name,
+                    quantity: ing.MealIngredient.quantity
+                }); // Add meal name and quantity to the meals array
             });
             return acc;
         }, {});
@@ -73,7 +80,13 @@ router.get('/create/:mealPlanId', async (req, res) => {
                 include: [{ model: Ingredient, attributes: ['name', 'category'] }]
             });
 
-            res.json(shoppingList);
+            // Attach meals information to the shopping list items
+            const shoppingListWithMeals = shoppingList.map(item => ({
+                ...item.toJSON(),
+                meals: ingredientsNeeded[item.ingredientId].meals
+            }));
+
+            res.json(shoppingListWithMeals);
         } catch (error) {
             await transaction.rollback();
             throw error;

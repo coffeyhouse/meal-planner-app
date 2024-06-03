@@ -1,35 +1,37 @@
+// src/components/common/Button.jsx
+
 import React from "react";
 
-function Button({ children, ...rest }) {
+function Button({ children, className = '', ...rest }) {
     return (
         <button
-            className='px-4 py-2 font-semibold text-white text-sm disabled:bg-[#FA691A]/20 bg-[#70B9BE] rounded-xl px-3'
+            className={`px-4 py-2 font-semibold text-white text-sm disabled:bg-[#FA691A]/20 bg-[#70B9BE] rounded-xl ${className}`}
             {...rest}
         >
             {children}
         </button>
-    )
+    );
 }
 
-Button.Secondary = function Secondary({ children, ...rest }) {
+Button.Secondary = function Secondary({ children, className = '', ...rest }) {
     return (
         <button
-        className='px-4 py-2 font-semibold text-sm disabled:bg-[#FA691A]/20 border border-[#70B9BE] rounded-xl px-3 text-[#70B9BE]'
-        {...rest}
-    >
-        {children}
-    </button>
+            className={`px-4 py-2 font-semibold text-sm disabled:bg-[#FA691A]/20 border border-[#70B9BE] rounded-xl text-[#70B9BE] ${className}`}
+            {...rest}
+        >
+            {children}
+        </button>
     );
 };
 
-Button.Destructive = function Destructive({ children, ...rest }) {
+Button.Destructive = function Destructive({ children, className = '', ...rest }) {
     return (
         <button
-        className='px-4 py-2 font-semibold text-sm bg-red-500 border border-red-500 rounded-xl px-3 text-white'
-        {...rest}
-    >
-        {children}
-    </button>
+            className={`px-4 py-2 font-semibold text-sm bg-red-500 border border-red-500 rounded-xl text-white ${className}`}
+            {...rest}
+        >
+            {children}
+        </button>
     );
 };
 

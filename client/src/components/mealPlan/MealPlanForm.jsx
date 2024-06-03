@@ -1,14 +1,19 @@
+// src/components/mealPlan/MealPlanForm.jsx
+
 import React, { useState } from 'react';
 import NavBar from '../common/NavBar';
 import PageContainer from '../layout/PageContainer';
 import Button from '../common/Button';
 import Heading from '../common/Heading';
+import Input from '../common/Input';
+import Notification from '../common/Notification';
 
 function MealPlanForm() {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [notification, setNotification] = useState(null);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -30,10 +35,11 @@ function MealPlanForm() {
 
             const result = await response.json();
             setMessage('Meal plan created successfully!');
-            console.log(result); // For debugging purposes
+            setNotification({ message: 'Meal plan created successfully!', type: 'success' });
         } catch (error) {
             console.error('Failed to create meal plan:', error);
             setMessage('Failed to create meal plan. Please try again later.');
+            setNotification({ message: 'Failed to create meal plan. Please try again later.', type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -45,18 +51,16 @@ function MealPlanForm() {
                 <NavBar title="Create a meal plan" />
             </PageContainer.Header>
             <PageContainer.Content>
-                <form onSubmit={handleSubmit} className='flex flex-col gap-2 w-full'>
-                    <Heading variant="h3">Start date</Heading>
-                    <input
-                        className="bg-white p-2 border w-full"
+                <form onSubmit={handleSubmit} className='flex flex-col gap-4 w-full'>
+                    <Input
+                        label="Start date"
                         type="date"
                         value={startDate}
                         onChange={e => setStartDate(e.target.value)}
                         required
                     />
-                    <Heading variant="h3">End date</Heading>
-                    <input
-                        className="bg-white p-2 border"
+                    <Input
+                        label="End date"
                         type="date"
                         value={endDate}
                         onChange={e => setEndDate(e.target.value)}
@@ -67,6 +71,13 @@ function MealPlanForm() {
                     </Button>
                 </form>
                 {message && <p>{message}</p>}
+                {notification && (
+                    <Notification
+                        message={notification.message}
+                        type={notification.type}
+                        onClose={() => setNotification(null)}
+                    />
+                )}
             </PageContainer.Content>
         </PageContainer>
     );

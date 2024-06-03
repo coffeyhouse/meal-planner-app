@@ -1,3 +1,5 @@
+// components/meal/MealGrid.jsx
+
 import React from 'react';
 import MealCard from './MealCard';
 import { Link } from 'react-router-dom';
