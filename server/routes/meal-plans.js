@@ -4,8 +4,22 @@ const express = require('express');
 const Meal = require('../models/Meal');
 const MealPlan = require('../models/MealPlan');
 const MealPlanDay = require('../models/MealPlanDay');
+const Author = require('../models/Author');
 const router = express.Router();
 const { Op } = require('sequelize');
+
+// Helper function to transform the meal object
+function transformMeal(meal) {
+    return {
+        id: meal.id,
+        name: meal.name,
+        imageUrl: meal.imageUrl,
+        author: meal.Author ? meal.Author.name : null,
+        createdAt: meal.createdAt,
+        updatedAt: meal.updatedAt,
+        authorId: meal.authorId
+    };
+}
 
 // POST /api/meal-plans - Create a new meal plan
 router.post('/', async (req, res) => {
@@ -29,23 +43,43 @@ router.get('/:id', async (req, res) => {
 
     try {
         const mealPlan = await MealPlan.findByPk(id, {
-            include: [{
-                model: MealPlanDay,
-                include: [Meal] // Ensure Meal is associated in MealPlanDay model
-            }]
+            include: [
+                {
+                    model: MealPlanDay,
+                    include: [
+                        {
+                            model: Meal,
+                            include: [
+                                {
+                                    model: Author,
+                                    attributes: ['name']
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         });
 
         if (!mealPlan) {
             return res.status(404).json({ message: "Meal plan not found" });
         }
 
-        res.status(200).json(mealPlan);
+        // Transform the mealPlan to include author name directly in the meal object
+        const transformedMealPlan = {
+            ...mealPlan.toJSON(),
+            MealPlanDays: mealPlan.MealPlanDays.map(mealPlanDay => ({
+                ...mealPlanDay.toJSON(),
+                Meal: transformMeal(mealPlanDay.Meal)
+            }))
+        };
+
+        res.status(200).json(transformedMealPlan);
     } catch (error) {
         console.error('Error fetching meal plan:', error);
         res.status(500).send({ error: 'Error fetching meal plan' });
     }
 });
-
 // GET /api/meal-plans - List all meal plans
 router.get('/', async (req, res) => {
     try {

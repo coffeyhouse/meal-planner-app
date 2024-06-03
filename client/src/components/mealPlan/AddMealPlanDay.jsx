@@ -13,6 +13,7 @@ import dayjs from 'dayjs';
 import { getDateRange, formatDayAndWeekday } from '../../utils';
 import { searchItems } from '../../utils/search';
 import MealCard from '../meal/MealCard';
+import { RxCross1 } from "react-icons/rx";
 
 function AddMealPlanDay() {
     const { mealPlanId } = useParams();
@@ -28,7 +29,9 @@ function AddMealPlanDay() {
     const [searchQuery, setSearchQuery] = useState(''); // Add search query state
     const [shoppingList, setShoppingList] = useState(null);
     const [isShoppingListModalOpen, setIsShoppingListModalOpen] = useState(false);
+    const [isMealModalOpen, setIsMealModalOpen] = useState(false);
     const [editingMealType, setEditingMealType] = useState(''); // Add state for editing meal type
+    const [selectedMeal, setSelectedMeal] = useState(null);
 
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen);
@@ -38,6 +41,7 @@ function AddMealPlanDay() {
     };
 
     const toggleShoppingListModal = () => setIsShoppingListModalOpen(!isShoppingListModalOpen);
+    const toggleMealModal = () => setIsMealModalOpen(!isMealModalOpen);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -142,7 +146,7 @@ function AddMealPlanDay() {
             }
 
             await fetchData(selectedDate);
-            setIsModalOpen(false);
+            setIsMealModalOpen(false);
             setEditingMealType('');
         } catch (error) {
             setError(error.message);
@@ -172,9 +176,12 @@ function AddMealPlanDay() {
         toggleModal();
     }
 
-    function handleMealCardClick(type) {
+    function handleMealCardClick(data, type) { 
+        const meal = meals.find(meal => meal.id === data.id);
+        console.log(meal);
         setEditingMealType(type);
-        toggleModal();
+        setSelectedMeal(meal); 
+        toggleMealModal();
     }
 
     if (!mealPlan || !dates) return <p>Loading meal plan details...</p>;
@@ -216,7 +223,7 @@ function AddMealPlanDay() {
                             <CardContainer key={type}>
                                 <Heading variant="h3" className="mt-4">{type.charAt(0).toUpperCase() + type.slice(1)}</Heading>
                                 {mealsForSelectedDate[type] ? (
-                                    <MealCard meal={mealsForSelectedDate[type]} action="add" onClick={() => handleMealCardClick(type)} />
+                                    <MealCard meal={mealsForSelectedDate[type]} action="add" onClick={() => handleMealCardClick(mealsForSelectedDate[type], type)} />
                                 ) : (
                                     <Button.Secondary onClick={() => openModal(type)}>Add {type}</Button.Secondary>
                                 )}
@@ -249,6 +256,46 @@ function AddMealPlanDay() {
                 <Modal title="Shopping List" onClose={toggleShoppingListModal}>
                     <ShoppingList items={shoppingList} onClose={toggleShoppingListModal} />
                 </Modal>
+            )}
+
+            {isMealModalOpen && (
+                <div className='absolute left-0 top-0 w-full h-full flex justify-center bg-black/30'>
+                    <div className='bg-white w-full md:w-[395px] rounded-t-xl'>
+                        {
+                            selectedMeal.imageUrl && (
+                                // <img
+                                //     className='rounded-lg shadow w-full'
+                                //     src={`${window.location.origin.replace(window.location.port, '5000')}${selectedMeal.imageUrl}`}
+                                // />
+                                <>
+                                    <div className={`relative h-[350px] w-full bg-center bg-cover bg-[url("${selectedMeal.imageUrl ? `${window.location.origin.replace(window.location.port, '5000')}${selectedMeal.imageUrl}` : `https://picsum.photos/300?random=${selectedMeal.id}`}")]`}>
+                                        <div className='bg-gradient-to-b from-white/20 w-full h-[350px] h-full absolute top-0 z-10'></div>
+                                    </div>
+                                    <button
+                                        onClick={toggleMealModal}
+                                        aria-label="Close modal"
+                                        className="absolute top-0 text-xl bg-white rounded-xl p-3 shadow-lg shadow-black/30 m-4 z-20"
+                                    >
+                                        <RxCross1 />
+                                    </button>
+                                </>
+
+                            )
+                        }
+
+                        <div className='absolute w-full rounded-t-2xl p-8 flex flex-col gap-4 bg-white mt-[-20px]'>
+                            <div className='flex flex-col gap-1'>
+                                <p className='text-xl font-bold'>{selectedMeal.name}</p>
+                                <p className='text-sm mb-2'>By <span className='font-medium'>{selectedMeal.author || "Coffey special"}</span></p>
+                                <Heading variant="h3">Ingredients</Heading>
+                                <ul className='text-sm mb-4'>
+                                    {selectedMeal.ingredients.map(ingredient => <li>{ingredient.name} - {ingredient.quantity} {ingredient.unit} </li>)}
+                                </ul>
+                                <Button.Destructive onClick={handleDeleteMeal}>Remove from plan</Button.Destructive>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     );
