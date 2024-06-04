@@ -23,10 +23,14 @@ function Notification({ message, type = 'info', onClose }) {
 
     return (
         <div
-            className={`flex fixed bottom-4 right-4 p-4 rounded shadow-lg transition-opacity duration-500 ${typeStyles[type]} ${visible ? 'opacity-100' : 'opacity-0'}`}
+            className={`max-w-full fixed bottom-0 right-0 transition-opacity duration-500  ${visible ? 'opacity-100' : 'opacity-0'}`}
+            onClick={onClose}
         >
-            <p>{message}</p>
-            <button onClick={onClose} className="ml-4 font-bold">X</button>
+            <div className={`flex p-4 rounded shadow-lg m-4 ${typeStyles[type]}`}>
+
+                <p>{message}</p>
+                <button className="ml-4 font-bold">X</button>
+            </div>
         </div>
     );
 }

@@ -1,17 +1,19 @@
 import os
 
 def combine_files(directory, output_file):
+    """
+    Combines text files from a specified directory into a single output file,
+    excluding certain directories, file extensions, and specific filenames.
+    """
     excluded_dirs = {'node_modules', '.git', 'migrations'}
     excluded_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.sqlite', '.sqlite3', '.log'}
     excluded_files = {'package.json', 'package-lock.json', 'yarn.lock', '.gitignore', '.npmrc'}
 
-    with open(output_file, 'a', encoding='utf-8') as outfile:  # Change 'w' to 'a' to append
+    with open(output_file, 'a', encoding='utf-8') as outfile:
         for root, dirs, files in os.walk(directory):
-            # Exclude specified directories
             dirs[:] = [d for d in dirs if d not in excluded_dirs]
 
             for file in files:
-                # Exclude files with specific extensions or specific filenames
                 if any(file.endswith(ext) for ext in excluded_extensions) or file in excluded_files:
                     continue
 
@@ -26,15 +28,12 @@ def combine_files(directory, output_file):
                         content = infile.read()
                         outfile.write(content)
 
-# Specify the directories and output file
-directories = ['C:/Code/.projects/meal-planner-app/client/src', 
-               'C:/Code/.projects/meal-planner-app/server']
-output_file = 'combined_project_files.txt'
+base_dir = os.path.dirname(os.path.abspath(__file__))
+directories = [os.path.join(base_dir, 'client/src'), os.path.join(base_dir, 'server')]
+output_file = os.path.join(base_dir, 'combined_project_files.txt')
 
-# Ensure the output file is empty before starting
 with open(output_file, 'w', encoding='utf-8') as outfile:
     outfile.write('')
 
-# Combine files from the specified directories
 for directory in directories:
     combine_files(directory, output_file)

@@ -1,6 +1,6 @@
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\main.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\main.jsx ====================
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
@@ -65,7 +65,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 );
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\HomePage.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\HomePage.jsx ====================
 
 // src/components/HomePage.jsx
 
@@ -172,7 +172,7 @@ function HomePage() {
 export default HomePage;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\IngredientSearch.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\IngredientSearch.jsx ====================
 
 // src/components/IngredientSearch.jsx
 
@@ -304,7 +304,7 @@ function IngredientSearch({ onIngredientSelect, onClose }) {
 export default IngredientSearch;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Button.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\Button.jsx ====================
 
 // src/components/common/Button.jsx
 
@@ -346,7 +346,7 @@ Button.Destructive = function Destructive({ children, className = '', ...rest })
 export default Button;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Card.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\Card.jsx ====================
 
 import React from "react";
 import { Link } from "react-router-dom";
@@ -407,7 +407,7 @@ function Card({ title, description, image, buttonType, buttonLink, buttonClick =
 export default Card;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\CardContainer.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\CardContainer.jsx ====================
 
 import React from "react"
 
@@ -421,7 +421,7 @@ function CardContainer({children}) {
 
 export default CardContainer;
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\ErrorMessage.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\ErrorMessage.jsx ====================
 
 // src/components/common/ErrorMessage.jsx
 
@@ -438,7 +438,7 @@ function ErrorMessage({ message }) {
 export default ErrorMessage;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Heading.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\Heading.jsx ====================
 
 import React from "react";
 
@@ -458,7 +458,7 @@ function Heading({ variant, children }) {
 export default Heading;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Input.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\Input.jsx ====================
 
 // src/components/common/Input.jsx
 
@@ -484,7 +484,7 @@ function Input({ label, type = 'text', value, onChange, placeholder, className =
 export default Input;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\LoadingSpinner.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\LoadingSpinner.jsx ====================
 
 // src/components/common/LoadingSpinner.jsx
 
@@ -504,7 +504,7 @@ function LoadingSpinner() {
 export default LoadingSpinner;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Modal.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\Modal.jsx ====================
 
 import React from "react";
 import { RxCross1 } from "react-icons/rx";
@@ -535,7 +535,7 @@ function Modal({ title = "Modal title", onClose, children }) {
 export default Modal;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\NavBar.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\NavBar.jsx ====================
 
 import React from "react";
 import { RxChevronLeft } from "react-icons/rx";
@@ -575,7 +575,7 @@ function NavBar({ title }) {
 export default NavBar;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Notification.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\Notification.jsx ====================
 
 // src/components/common/Notification.jsx
 
@@ -602,10 +602,14 @@ function Notification({ message, type = 'info', onClose }) {
 
     return (
         <div
-            className={`flex fixed bottom-4 right-4 p-4 rounded shadow-lg transition-opacity duration-500 ${typeStyles[type]} ${visible ? 'opacity-100' : 'opacity-0'}`}
+            className={`max-w-full fixed bottom-0 right-0 transition-opacity duration-500  ${visible ? 'opacity-100' : 'opacity-0'}`}
+            onClick={onClose}
         >
-            <p>{message}</p>
-            <button onClick={onClose} className="ml-4 font-bold">X</button>
+            <div className={`flex p-4 rounded shadow-lg m-4 ${typeStyles[type]}`}>
+
+                <p>{message}</p>
+                <button className="ml-4 font-bold">X</button>
+            </div>
         </div>
     );
 }
@@ -613,7 +617,7 @@ function Notification({ message, type = 'info', onClose }) {
 export default Notification;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\SearchBar.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\SearchBar.jsx ====================
 
 import React from 'react';
 import { PiSlidersHorizontal } from "react-icons/pi";
@@ -638,7 +642,7 @@ function SearchBar({ searchQuery, handleSearchChange }) {
 export default SearchBar;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\Select.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\Select.jsx ====================
 
 // src/components/common/Select.jsx
 
@@ -668,7 +672,7 @@ function Select({ label, value, onChange, options, className = '', required = fa
 export default Select;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\common\ShoppingList.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\common\ShoppingList.jsx ====================
 
 // src/components/common/ShoppingList.jsx
 
@@ -738,7 +742,7 @@ function ShoppingList({ items, onClose }) {
 export default ShoppingList;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\layout\PageContainer.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\layout\PageContainer.jsx ====================
 
 import React from "react";
 
@@ -772,7 +776,7 @@ PageContainer.Content = function Content({ children }) {
 export default PageContainer;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\layout\Section.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\layout\Section.jsx ====================
 
 // src/components/layout/Section.jsx
 
@@ -790,7 +794,7 @@ function Section({ title, children, className = '' }) {
 export default Section;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\meal\MealCard.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\meal\MealCard.jsx ====================
 
 // components/meal/MealCard.jsx
 
@@ -857,7 +861,7 @@ function MealCard({ meal, action, onClick }) {
 export default MealCard;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\meal\MealGrid.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\meal\MealGrid.jsx ====================
 
 // components/meal/MealGrid.jsx
 
@@ -918,7 +922,7 @@ function MealGrid({ meals, onMealSelect }) {
 export default MealGrid;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\meal\Meals.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\meal\Meals.jsx ====================
 
 // src/components/meal/Meals.jsx
 
@@ -967,7 +971,7 @@ function Meals() {
 export default Meals;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\meal\RecipeBuilder.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\meal\RecipeBuilder.jsx ====================
 
 import React, { useState, useEffect } from 'react';
 import IngredientSearch from '../IngredientSearch';
@@ -1266,7 +1270,7 @@ function RecipeBuilder() {
 export default RecipeBuilder;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\mealPlan\AddMealPlanDay.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\mealPlan\AddMealPlanDay.jsx ====================
 
 // src/components/mealPlan/AddMealPlanDay.jsx
 
@@ -1384,6 +1388,11 @@ function AddMealPlanDay() {
     };
 
     const generateShoppingList = async () => {
+        if (mealPlanDays.length === 0) {
+            setAddNotification({ message: 'No meals in the plan to create a shopping list.', type: 'error' });
+            return;
+        }
+
         try {
             const response = await fetch(`/api/shopping-list/create/${mealPlanId}`);
             if (!response.ok) {
@@ -1543,7 +1552,7 @@ function AddMealPlanDay() {
 export default AddMealPlanDay;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\mealPlan\MealPlanForm.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\mealPlan\MealPlanForm.jsx ====================
 
 // src/components/mealPlan/MealPlanForm.jsx
 
@@ -1633,7 +1642,7 @@ function MealPlanForm() {
 export default MealPlanForm;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\mealPlan\MealPlanList.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\mealPlan\MealPlanList.jsx ====================
 
 // src/components/mealPlan/MealPlanList.jsx
 
@@ -1756,7 +1765,7 @@ function MealPlanList() {
 export default MealPlanList;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\components\mealPlan\MealPlanOptions.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\components\mealPlan\MealPlanOptions.jsx ====================
 
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -1789,7 +1798,7 @@ function MealPlanOptions() {
 export default MealPlanOptions;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\hooks\useFetch.js ====================
+==================== C:\Code\meal-planner-app\client/src\hooks\useFetch.js ====================
 
 // hooks/useFetch.js
 import { useState, useEffect, useCallback } from 'react';
@@ -1825,7 +1834,7 @@ const useFetch = (url) => {
 export default useFetch;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\hooks\usePost.js ====================
+==================== C:\Code\meal-planner-app\client/src\hooks\usePost.js ====================
 
 // src/hooks/usePost.js
 import { useState } from 'react';
@@ -1865,7 +1874,7 @@ const usePost = (url) => {
 export default usePost;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\routes\ErrorPage.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\routes\ErrorPage.jsx ====================
 
 import React from "react";
 
@@ -1886,7 +1895,7 @@ export default function ErrorPage() {
   );
 }
 
-==================== C:/Code/.projects/meal-planner-app/client/src\routes\Root.jsx ====================
+==================== C:\Code\meal-planner-app\client/src\routes\Root.jsx ====================
 
 import { Outlet } from "react-router-dom";
 
@@ -1899,7 +1908,7 @@ function Root() {
 export default Root;
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\utils\date.js ====================
+==================== C:\Code\meal-planner-app\client/src\utils\date.js ====================
 
 // utils/date.js
 
@@ -1940,7 +1949,7 @@ export function formatDateConsistent(dateString) {
 }
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\utils\index.js ====================
+==================== C:\Code\meal-planner-app\client/src\utils\index.js ====================
 
 export const parseDate = (input) => {
     if (!input) return null;
@@ -1988,7 +1997,7 @@ export const formatDayAndWeekday = (dateString) => {
 };
 
 
-==================== C:/Code/.projects/meal-planner-app/client/src\utils\search.js ====================
+==================== C:\Code\meal-planner-app\client/src\utils\search.js ====================
 
 import Fuse from 'fuse.js';
 
@@ -2003,7 +2012,7 @@ export const searchItems = (items, keys, searchTerm, threshold = 0.3) => {
 };
 
 
-==================== C:/Code/.projects/meal-planner-app/server\server.js ====================
+==================== C:\Code\meal-planner-app\server\server.js ====================
 
 // server.js
 const express = require('express');
@@ -2044,7 +2053,7 @@ sequelize.sync({ force: false }).then(() => {
 });
 
 
-==================== C:/Code/.projects/meal-planner-app/server\config\config.json ====================
+==================== C:\Code\meal-planner-app\server\config\config.json ====================
 
 {
   "development": {
@@ -2054,7 +2063,7 @@ sequelize.sync({ force: false }).then(() => {
 }
 
 
-==================== C:/Code/.projects/meal-planner-app/server\models\Author.js ====================
+==================== C:\Code\meal-planner-app\server\models\Author.js ====================
 
 // models/Author.js
 
@@ -2074,7 +2083,7 @@ const Author = sequelize.define('Author', {
 module.exports = Author;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\models\database.js ====================
+==================== C:\Code\meal-planner-app\server\models\database.js ====================
 
 // models/database.js
 
@@ -2089,7 +2098,7 @@ const sequelize = new Sequelize({
 module.exports = sequelize;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\models\index.js ====================
+==================== C:\Code\meal-planner-app\server\models\index.js ====================
 
 'use strict';
 
@@ -2136,7 +2145,7 @@ db.Sequelize = Sequelize;
 module.exports = db;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\models\Ingredient.js ====================
+==================== C:\Code\meal-planner-app\server\models\Ingredient.js ====================
 
 // models/Ingredient.js
 
@@ -2154,7 +2163,7 @@ const Ingredient = sequelize.define('Ingredient', {
 module.exports = Ingredient;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\models\Meal.js ====================
+==================== C:\Code\meal-planner-app\server\models\Meal.js ====================
 
 // models/Meal.js
 
@@ -2173,7 +2182,7 @@ Meal.belongsTo(Author, { foreignKey: 'authorId' });
 module.exports = Meal;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\models\MealIngredient.js ====================
+==================== C:\Code\meal-planner-app\server\models\MealIngredient.js ====================
 
 // models/MealIngredient.js
 
@@ -2216,7 +2225,7 @@ MealIngredient.belongsTo(Ingredient, {foreignKey: 'ingredientId'});
 module.exports = MealIngredient;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\models\MealPlan.js ====================
+==================== C:\Code\meal-planner-app\server\models\MealPlan.js ====================
 
 // models/MealPlan.js
 
@@ -2233,7 +2242,7 @@ const MealPlan = sequelize.define('MealPlan', {
 module.exports = MealPlan;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\models\MealPlanDay.js ====================
+==================== C:\Code\meal-planner-app\server\models\MealPlanDay.js ====================
 
 // models/MealPlanDay.js
 
@@ -2255,7 +2264,7 @@ MealPlanDay.belongsTo(Meal, {foreignKey: 'mealId'});
 module.exports = MealPlanDay;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\models\relations.js ====================
+==================== C:\Code\meal-planner-app\server\models\relations.js ====================
 
 // models/relations.js
 
@@ -2280,7 +2289,7 @@ Meal.hasMany(MealPlanDay, {foreignKey: 'mealId'});
 Meal.belongsTo(Author, { foreignKey: 'authorId' });
 Author.hasMany(Meal, { foreignKey: 'authorId' });
 
-==================== C:/Code/.projects/meal-planner-app/server\models\ShoppingList.js ====================
+==================== C:\Code\meal-planner-app\server\models\ShoppingList.js ====================
 
 // models/ShoppingList.js
 
@@ -2314,7 +2323,7 @@ const ShoppingList = sequelize.define('ShoppingList', {
 module.exports = ShoppingList;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\routes\ingredients.js ====================
+==================== C:\Code\meal-planner-app\server\routes\ingredients.js ====================
 
 // routes/ingredients.js
 
@@ -2384,7 +2393,7 @@ router.delete('/:id', async (req, res) => {
 module.exports = router;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\routes\meal-plans.js ====================
+==================== C:\Code\meal-planner-app\server\routes\meal-plans.js ====================
 
 // routes/meal-plans.js
 
@@ -2586,7 +2595,7 @@ router.post('/:mealPlanId/meals/delete', async (req, res) => {
 module.exports = router;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\routes\meals.js ====================
+==================== C:\Code\meal-planner-app\server\routes\meals.js ====================
 
 // routes/meals.js
 
@@ -2795,7 +2804,7 @@ router.delete('/:id', async (req, res) => {
 module.exports = router;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\routes\shopping-list.js ====================
+==================== C:\Code\meal-planner-app\server\routes\shopping-list.js ====================
 
 // server/routes/shopping-list.js
 
@@ -2901,7 +2910,7 @@ router.get('/create/:mealPlanId', async (req, res) => {
 module.exports = router;
 
 
-==================== C:/Code/.projects/meal-planner-app/server\routes\upload.js ====================
+==================== C:\Code\meal-planner-app\server\routes\upload.js ====================
 
 const express = require('express');
 const axios = require('axios');
