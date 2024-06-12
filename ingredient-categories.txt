@@ -1,0 +1,87 @@
+Bakery
+ - Bread
+ - Bread Rolls
+ - Cakes
+ - Breakfast Pastries
+ - Scones & Teacakes
+ - Sweet Treats
+ - Wraps, Naans, Pittas & Thins
+Fresh Food
+ - Fresh Fish & Seafood
+ - Meat & Poultry
+ - Fresh Fruit
+ - Fresh Vegetables
+ - Stir Fry, Sauce & Noodles
+Drinks
+ - Soft Drinks & Juices
+ - Water
+ - Tonics & Mixers
+ - Coffee
+ - Tea
+ - Beers & Ciders
+ - Wine
+ - Spirits & Liqueurs
+Food Cupboard
+ - Biscuits & Crackers
+ - Cereals & Snack Bars
+ - Crisps & Snacks
+ - Sugar & Home Baking
+ - Jams, Spreads & Syrups
+ - Rice, Pasta & Noodles
+ - Seeds, Nuts & Dried Fruits
+ - Chocolate & Sweets
+ - Sauces, Oils & Dressings
+ - Tins, Cans & Packets
+ - Desserts
+ - Herbs & Spices
+Frozen Food
+ - Frozen Fish & Seafood
+ - Frozen Chips & Potato
+ - Frozen Meat & Poultry
+ - Frozen Fruit & Smoothie Mixes
+ - Frozen Vegetables & Sides
+ - Frozen Ready Meals & Party Food
+ - Frozen Pizzas & Garlic Bread
+ - Ice Cream & Desserts
+ - Frozen Vegetarian Food
+Chilled Food
+ - Cheese
+ - Chilled Meats
+ - Pizza, Pasta & Garlic Bread
+ - Ready Meals
+ - Yogurts
+ - Food To Go
+ - Party Food, Salads & Dips
+ - Milk, Dairy & Eggs
+Baby & Toddler
+ - Baby Food & Drink
+ - Nappies & Wipes
+Health & Beauty
+ - Bath, Shower & Soap
+ - Bladder Weakness
+ - Dental Care
+ - Shampoo & Hair Care
+ - Deodorants
+ - Men's Toiletries
+ - Women's Toiletries
+ - Cotton Wool & Buds
+ - Sports Nutrition
+ - Medicine
+ - Skin Care
+Household
+ - Air Fresheners
+ - Batteries
+ - Fresh Flowers
+ - Candles & Reed Diffusers
+ - Dishwashing
+ - Food Bags, Foil & Cling Film
+ - Carrier Bags
+ - House Cleaning
+ - Laundry
+ - Toilet, Kitchen Roll & Tissues
+Alcohol
+ - Lager & IPA
+ - Cider
+ - Low & No Alcohol Beer
+ - Wine
+ - Spirits
